@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/view/login/welcome_view.dart';
- // Example new page
+ 
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(  // Use GetMaterialApp instead of MaterialApp
+    return GetMaterialApp(  
       title: 'Expense Tracker',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: false,
       ),
-      home: WelcomeView(),
+      home: const WelcomeView(),
     );
   }
 }

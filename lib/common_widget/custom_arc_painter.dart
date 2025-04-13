@@ -18,7 +18,7 @@ class CustomArcPainter extends CustomPainter {
         radius: size.width / 2);
 
     var gradientColor = LinearGradient(
-        colors: [TColor.secondary,  TColor.secondary],
+        colors: [TColor.line,  TColor.line],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter);
 
@@ -35,7 +35,7 @@ class CustomArcPainter extends CustomPainter {
     backgroundPaint.strokeCap = StrokeCap.round;
 
     Paint shadowPaint = Paint()
-        ..color = TColor.secondary.withOpacity(0.3)
+        ..color = TColor.line.withOpacity(0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = width + blurWidth
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);

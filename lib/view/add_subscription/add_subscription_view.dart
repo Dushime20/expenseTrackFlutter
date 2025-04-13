@@ -34,13 +34,13 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
   Widget build(BuildContext context) {
     var media = MediaQuery.sizeOf(context);
     return Scaffold(
-      backgroundColor: TColor.gray,
+      backgroundColor: TColor.back,
       body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
               decoration: BoxDecoration(
-                  color: TColor.gray70.withOpacity(0.5),
+                  color: TColor.white,
                   borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(25),
                       bottomRight: Radius.circular(25))),
@@ -70,7 +70,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                             Text(
                               "New",
                               style:
-                                  TextStyle(color: TColor.gray30, fontSize: 16),
+                                  TextStyle(color: TColor.gray60, fontSize: 16),
                             )
                           ],
                         ),
@@ -82,7 +82,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                         "Add new\n bills",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            color: TColor.white,
+                            color: TColor.gray80,
                             fontSize: 40,
                             fontWeight: FontWeight.w700),
                       ),
@@ -120,7 +120,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                                 Text(
                                   sObj["name"],
                                   style: TextStyle(
-                                      color: TColor.white,
+                                      color: TColor.gray60,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600),
                                 )
@@ -167,7 +167,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                         Text(
                         "Monthly price",
                         style: TextStyle(
-                            color: TColor.gray40,
+                            color: TColor.gray60,
                             fontSize: 12,
                             fontWeight: FontWeight.w600),
                       ),
@@ -177,7 +177,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                        Text(
                         "\$${amountVal.toStringAsFixed(2)}",
                         style: TextStyle(
-                            color: TColor.white,
+                            color: TColor.gray60,
                             fontSize: 40,
                             fontWeight: FontWeight.w700),
                       ),
@@ -188,7 +188,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                       Container(
                         width: 150,
                         height: 1,
-                        color: TColor.gray70,
+                        color: TColor.gray60,
                       )
                     ],
                   ),
@@ -207,7 +207,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child:
-                  PrimaryButton(title: "Add this platform", onPress: () {  }, color: TColor.blue500, ),
+                  PrimaryButton(title: "Add new bills", onPress: () {  }, color: TColor.white, ),
             ),
             const SizedBox(
               height: 20,

@@ -16,6 +16,7 @@ class TColor {
   static Color get secondaryG50 => const Color(0xff7DFFEE);
 
   static Color get gray => const Color(0xff0E0E12);
+    static Color get back  =>const Color(0xfff6f6f6);
   static Color get gray80 => const Color(0xff1C1C23);
   static Color get gray70 => const Color(0xff353542);
   static Color get gray60 => const Color(0xff4E4E61);
@@ -38,6 +39,7 @@ class TColor {
   static Color get border => const Color(0xffCFCFFC);
   static Color get primaryText => Colors.white;
   static Color get secondaryText => gray60;
+  static Color get line=>const Color(0xff07c160);
   
   static Color get white => Colors.white;
 }

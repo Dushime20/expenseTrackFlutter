@@ -13,17 +13,17 @@ class UpcomingBillRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+      child: GestureDetector(
+        // borderRadius: BorderRadius.circular(16),
         onTap: onPressed,
-        child: Container(
-          height: 64,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: TColor.border.withOpacity(0.15),
-            ),
-            borderRadius: BorderRadius.circular(16),
+       child: Container(
+        padding: const EdgeInsets.only(left: 10,right: 10),
+        height: 64,
+          margin: const EdgeInsets.only(bottom: 0),
+        decoration: BoxDecoration(
+          color: TColor.back,
+          
+          borderRadius: BorderRadius.circular(4),
           ),
           alignment: Alignment.center,
           child: Row(
@@ -42,7 +42,7 @@ class UpcomingBillRow extends StatelessWidget {
                     Text(
                       "Jun",
                       style: TextStyle(
-                          color: TColor.gray30,
+                          color: TColor.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w500),
                     ),
@@ -50,7 +50,7 @@ class UpcomingBillRow extends StatelessWidget {
                     Text(
                       "25",
                       style: TextStyle(
-                          color: TColor.gray30,
+                          color: TColor.gray80,
                           fontSize: 14,
                           fontWeight: FontWeight.w500),
                     )
@@ -64,7 +64,7 @@ class UpcomingBillRow extends StatelessWidget {
                 child: Text(
                   sObj["name"],
                   style: TextStyle(
-                      color: TColor.white,
+                      color: TColor.gray60,
                       fontSize: 14,
                       fontWeight: FontWeight.w600),
                 ),
@@ -73,9 +73,9 @@ class UpcomingBillRow extends StatelessWidget {
                 width: 8,
               ),
               Text(
-                "\$${sObj["price"]}",
+                "${sObj["price"]}frw",
                 style: TextStyle(
-                    color: TColor.white,
+                    color: TColor.gray80,
                     fontSize: 14,
                     fontWeight: FontWeight.w600),
               )

@@ -25,8 +25,8 @@ class BudgetsRow extends StatelessWidget {
             border: Border.all(
               color: TColor.border.withOpacity(0.05),
             ),
-            color: TColor.gray60.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
+            color: TColor.white,
+            borderRadius: BorderRadius.circular(4),
           ),
           alignment: Alignment.center,
           child: Column(
@@ -55,12 +55,12 @@ class BudgetsRow extends StatelessWidget {
                         Text(
                           bObj["name"],
                           style: TextStyle(
-                              color: TColor.white,
+                              color: TColor.gray80,
                               fontSize: 14,
                               fontWeight: FontWeight.w600),
                         ),
                         Text(
-                          "\$${bObj["left_amount"]} left to spend",
+                          "${bObj["left_amount"]}Rwf left to spend",
                           style: TextStyle(
                               color: TColor.gray30,
                               fontSize: 12,
@@ -77,16 +77,16 @@ class BudgetsRow extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "\$${bObj["spend_amount"]}",
+                          "${bObj["spend_amount"]} Rwf",
                           style: TextStyle(
-                              color: TColor.white,
+                              color: TColor.gray60,
                               fontSize: 14,
                               fontWeight: FontWeight.w600),
                         ),
                         Text(
-                          "of \$${bObj["total_budget"]}",
+                          "of ${bObj["total_budget"]}Rwf ",
                           style: TextStyle(
-                              color: TColor.gray30,
+                              color: TColor.gray60,
                               fontSize: 12,
                               fontWeight: FontWeight.w500),
                         ),

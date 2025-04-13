@@ -19,7 +19,7 @@ class _SubscriptionInfoViewState extends State<SubscriptionInfoView> {
   Widget build(BuildContext context) {
     var media = MediaQuery.sizeOf(context);
     return Scaffold(
-      backgroundColor: TColor.gray,
+      backgroundColor: TColor.back,
       body: SingleChildScrollView(
         child: SafeArea(
           child: Stack(
@@ -28,7 +28,7 @@ class _SubscriptionInfoViewState extends State<SubscriptionInfoView> {
               Container(
                 margin: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xff282833).withOpacity(0.9),
+                  color: TColor.white,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: 

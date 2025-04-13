@@ -8,9 +8,7 @@ import 'package:untitled/view/spending_budgets/spending_budgets_view.dart';
 
 import '../../common/color_extension.dart';
 
-
 import '../home/home_view.dart';
-
 
 class MainTabView extends StatefulWidget {
   const MainTabView({super.key});
@@ -26,7 +24,6 @@ class _MainTabViewState extends State<MainTabView> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
   }
@@ -34,7 +31,6 @@ class _MainTabViewState extends State<MainTabView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: TColor.gray,
       body: Stack(children: [
         PageStorage(bucket: pageStorageBucket, child: currentTabView),
         SafeArea(
@@ -43,102 +39,109 @@ class _MainTabViewState extends State<MainTabView> {
               const Spacer(),
               Padding(
                 padding:
-                const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
                 child: Stack(
                   alignment: Alignment.bottomCenter,
                   children: [
                     Stack(
-                      alignment: Alignment.center,
                       children: [
-                        Image.asset("assets/img/bottom_bar_bg.png"),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  selectTab = 0;
-                                  currentTabView = const HomeView();
-                                });
-                              },
-                              icon: Image.asset(
-                                "assets/img/home.png",
-                                width: 20,
-                                height: 20,
-                                color: selectTab == 0
-                                    ? TColor.white
-                                    : TColor.gray30,
+                        Positioned.fill(
+                          child: Container(
+                            color: TColor.back, // background color
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.center,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    selectTab = 0;
+                                    currentTabView = const HomeView();
+                                  });
+                                },
+                                icon: Image.asset(
+                                  "assets/img/home.png",
+                                  width: 20,
+                                  height: 20,
+                                  color: selectTab == 0
+                                      ? TColor.line
+                                      : TColor.gray60,
+                                ),
                               ),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  selectTab = 1;
-                                  currentTabView = const SpendingBudgetsView();
-                                });
-                              },
-                              icon: Image.asset(
-                                "assets/img/budgets.png",
-                                width: 20,
-                                height: 20,
-                                color: selectTab == 1
-                                    ? TColor.white
-                                    : TColor.gray30,
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    selectTab = 1;
+                                    currentTabView =
+                                        const SpendingBudgetsView();
+                                  });
+                                },
+                                icon: Image.asset(
+                                  "assets/img/budgets.png",
+                                  width: 20,
+                                  height: 20,
+                                  color: selectTab == 1
+                                     ? TColor.line
+                                      : TColor.gray60,
+                                ),
                               ),
-                            ),
-                            const SizedBox(
-                              width: 50,
-                              height: 50,
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  selectTab = 2;
-                                  currentTabView = SettingsView();
-                                });
-                              },
-                              icon: Icon(
-                                Icons.settings, // Using the built-in Settings icon
-                                size: 24, // Adjust the size if needed
-                                color: selectTab == 2 ? TColor.white : TColor.gray30,
+                              const SizedBox(width: 50, height: 50),
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    selectTab = 2;
+                                    currentTabView = const SettingsView();
+                                  });
+                                },
+                                icon: Icon(
+                                  Icons.settings,
+                                  size: 24,
+                                  color: selectTab == 2
+                                      ? TColor.line
+                                      : TColor.gray60,
+                                ),
                               ),
-                            ),
-
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  selectTab = 3;
-                                  currentTabView = SearchScreen();
-                                });
-                              },
-                              icon: Icon(
-                                Icons.search, //Using the built-in Profile icon
-                                size: 24, // Adjust the size if needed
-                                color: selectTab == 3 ? TColor.white : TColor.gray30,
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    selectTab = 3;
+                                    currentTabView = const SearchScreen();
+                                  });
+                                },
+                                icon: Icon(
+                                  Icons.search,
+                                  size: 24,
+                                  color: selectTab == 3
+                                    ? TColor.line
+                                      : TColor.gray60,
+                                ),
                               ),
-                            ),
-
-                          ],
-                        )
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                     InkWell(
                       onTap: () {
-                        Get.to(AddSubScriptionView());
-
+                        Get.to(const AddSubScriptionView());
                       },
                       child: Container(
                         margin: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(boxShadow: [
-                          BoxShadow(
-                              color: TColor.secondary.withOpacity(0.25),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4))
-                        ], borderRadius: BorderRadius.circular(50)),
-                        child: Image.asset(
-                          "assets/img/center_btn.png",
-                          width: 55,
-                          height: 55,
+                        width: 55,
+                        height: 55,
+                        decoration: BoxDecoration(
+                          color: TColor.line,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 30,
+                          ),
                         ),
                       ),
                     )

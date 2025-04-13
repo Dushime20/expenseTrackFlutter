@@ -13,52 +13,51 @@ class IncomeHomeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onPress,
       child: Container(
+        padding: const EdgeInsets.only(left: 10,right: 10),
         height: 64,
+          margin: const EdgeInsets.only(bottom:6),
         decoration: BoxDecoration(
-          color: TColor.gray60.withOpacity(0.2),
-          border: Border.all(color: TColor.border.withOpacity(0.15)),
-          borderRadius: BorderRadius.circular(16),
+          color: TColor.back,
+          
+          borderRadius: BorderRadius.circular(4),
         ),
         alignment: Alignment.center,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            children: [
-              Image.asset(
-                incObj["icon"],
-                width: 40,  // Reduced from 55 to save space
-                height: 40, // Reduced from 55 to save space
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  incObj["name"],
-                  style: TextStyle(
-                    color: TColor.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis, // Add ellipsis if text is too long
+        child: Row(
+          children: [
+            Image.asset(
+              incObj["icon"],
+              width: 40,  // Reduced from 55 to save space
+              height: 40, // Reduced from 55 to save space
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                incObj["name"],
+                style: TextStyle(
+                  color: TColor.gray60,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
+                overflow: TextOverflow.ellipsis, // Add ellipsis if text is too long
               ),
-              const SizedBox(width: 8),
-              Flexible(  // Changed from Expanded to Flexible to prevent taking too much space
-                child: Text(
-                  "${incObj["price"]} RWF",
-                  style: TextStyle(
-                    color: TColor.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
+            ),
+            const SizedBox(width: 100),
+            Flexible( 
+              child: Text(
+                "${incObj["price"]} RWF",
+                style: const TextStyle(
+                  color: Color.fromARGB(255, 21, 4, 4),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
+                overflow: TextOverflow.ellipsis,
+                // textAlign: TextAlign.end,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

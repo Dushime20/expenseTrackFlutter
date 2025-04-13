@@ -17,12 +17,12 @@ class SegmentButton extends StatelessWidget {
       onTap: onPress,
       child: Container(
         decoration: isActive? BoxDecoration(
-          color: TColor.gray60.withOpacity(0.2),
-          border: Border.all(color: TColor.border.withOpacity(0.15)),
+          
+          border: Border.all(color: TColor.line),
           borderRadius: BorderRadius.circular(12),):null,
         alignment: Alignment.center,
-        child: Text(title,style: TextStyle(
-          color: isActive?TColor.white : TColor.gray30,
+        child: Text(title,style: const TextStyle(
+          color: Colors.black87,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),),

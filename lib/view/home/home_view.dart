@@ -12,78 +12,126 @@ class HomeView extends StatefulWidget {
 
   @override
   State<HomeView> createState() => _HomeViewState();
-
 }
 
 class _HomeViewState extends State<HomeView> {
-
   bool isIncome = true;
+
   List incomeArr = [
-    {"name":"Monthly Salary", "icon":"assets/img/salary.jpeg", "price":"100,000"},
-    {"name":"Bonuses", "icon":"assets/img/bonus.jpeg", "price":"30,000"},
-    {"name":"Overtime Pay", "icon":"assets/img/overtime.jpeg", "price":"20,000"},
-    {"name":"Teaching Allowances ", "icon":"assets/img/allowence.jpeg", "price":"50,000"},
+    {
+      "name": "Monthly Salary",
+      "icon": "assets/img/salary.jpeg",
+      "price": "100,000"
+    },
+    {"name": "Bonuses", "icon": "assets/img/bonus.jpeg", "price": "30,000"},
+    {
+      "name": "Overtime Pay",
+      "icon": "assets/img/overtime.jpeg",
+      "price": "20,000"
+    },
+    {
+      "name": "Teaching Allowances",
+      "icon": "assets/img/allowence.jpeg",
+      "price": "50,000"
+    },
   ];
+
   List billArr = [
-    {"name":"Housing & Utilities", "date":DateTime(2025,05,1), "price":"100,000"},
-    {"name":"Food & Groceries","date":DateTime(2025,05,1), "price":"30,000"},
-    {"name":"Transportation", "date":DateTime(2025,05,1), "price":"20,000"},
-    {"name":"Communication & Subscriptions ", "date":DateTime(2025,05,1), "price":"50,000"},
-    {"name":"Family & Dependents ", "date":DateTime(2025,05,1),"price":"50,000"},
-    {"name":"Health & Insurance", "date":DateTime(2025,05,1), "price":"50,000"},
-    {"name":"Miscellaneous & Personal Expenses", "date":DateTime(2025,05,1), "price":"50,000"},
-    {"name":"Debt & Financial Commitments", "date":DateTime(2025,05,1), "price":"50,000"},
+    {
+      "name": "Housing & Utilities",
+      "date": DateTime(2025, 05, 1),
+      "price": "100,000"
+    },
+    {
+      "name": "Food & Groceries",
+      "date": DateTime(2025, 05, 1),
+      "price": "30,000"
+    },
+    {
+      "name": "Transportation",
+      "date": DateTime(2025, 05, 1),
+      "price": "20,000"
+    },
+    {
+      "name": "Communication & Subscriptions",
+      "date": DateTime(2025, 05, 1),
+      "price": "50,000"
+    },
+    {
+      "name": "Family & Dependents",
+      "date": DateTime(2025, 05, 1),
+      "price": "50,000"
+    },
+    {
+      "name": "Health & Insurance",
+      "date": DateTime(2025, 05, 1),
+      "price": "50,000"
+    },
+    {
+      "name": "Miscellaneous & Personal Expenses",
+      "date": DateTime(2025, 05, 1),
+      "price": "50,000"
+    },
+    {
+      "name": "Debt & Financial Commitments",
+      "date": DateTime(2025, 05, 1),
+      "price": "50,000"
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
-    
     var media = MediaQuery.sizeOf(context);
+
     return Scaffold(
-      backgroundColor: TColor.gray,
+      backgroundColor: TColor.white,
       body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
-              height: media.width * 1.1,
+              height: media.width * 0.8,
               decoration: BoxDecoration(
-                  color: TColor.gray70.withOpacity(0.5),
-                  borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(25),
-                      bottomRight: Radius.circular(25))),
+                color: TColor.back,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(25),
+                  bottomRight: Radius.circular(25),
+                ),
+              ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset("assets/img/home_bg.png"),
                   Stack(
                     alignment: Alignment.topCenter,
                     children: [
                       Container(
-                        padding:  EdgeInsets.only(bottom: media.width * 0.05),
-                        width: media.width * 0.72,
-                        height: media.width * 0.72,
+                        padding: EdgeInsets.only(bottom: media.width * 0.01),
+                        width: media.width * 0.6,
+                        height: media.width * 0.6,
                         child: CustomPaint(
-                          painter: CustomArcPainter(end: 220, ),
+                          painter: CustomArcPainter(end: 220),
                         ),
                       ),
-
                       Padding(
-                        padding: const EdgeInsets.only(right: 10),
+                        padding: const EdgeInsets.only(right: 10, top: 20),
                         child: Row(
                           children: [
-                            Spacer(),
+                            const Spacer(),
                             IconButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                          const SettingsView()));
-                                },
-                                icon: Image.asset("assets/img/settings.png",
-                                    width: 25,
-                                    height: 25,
-                                    color: TColor.gray30))
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const SettingsView(),
+                                  ),
+                                );
+                              },
+                              icon: Image.asset(
+                                "assets/img/settings.png",
+                                width: 25,
+                                height: 25,
+                                color: TColor.gray60,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -92,167 +140,166 @@ class _HomeViewState extends State<HomeView> {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(
-                        height: media.width * 0.05,
-                      ),
-                      Image.asset("assets/img/app_logo.png",
-                          width: media.width * 0.25, fit: BoxFit.contain),
-                      SizedBox(
-                        height: media.width * 0.07,
-                      ),
-                      Text(
-                        "\$1,235",
+                      const SizedBox(height: 10),
+                      const Text(
+                        "1,235 Frw",
                         style: TextStyle(
-                            color: TColor.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.w700),
+                          color: Colors.black,
+                          fontSize: 36,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      SizedBox(
-                        height: media.width * 0.055,
-                      ),
+                      const SizedBox(height: 6),
                       Text(
-                        "This month bills",
+                        "This month Expenses",
                         style: TextStyle(
-                            color: TColor.gray40,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600),
+                          color: TColor.gray60,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      SizedBox(
-                        height: media.width * 0.07,
-                      ),
+                      const SizedBox(height: 12),
                       InkWell(
                         onTap: () {},
                         child: Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            border: Border.all(
-                              color: TColor.border.withOpacity(0.15),
-                            ),
-                            color: TColor.gray60.withOpacity(0.3),
+                            border: Border.all(color: TColor.border),
+                            color: TColor.back,
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Text(
+                          child: const Text(
                             "See your budget",
                             style: TextStyle(
-                                color: TColor.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600),
+                              color: Colors.black87,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       )
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
+                  const SizedBox(
+                    height: 20.0,
+                  ),
+                  // Replace this inside the Stack (the one under the Container)
+                  Positioned(
+                    bottom: 5,
+                    left: 20,
+                    right: 20,
+                    child: Row(
                       children: [
-                        const Spacer(),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: StatusButton(
-                                title: "Active bills",
-                                value: "12",
-                                statusColor: TColor.secondary,
-                                onPressed: () {},
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 8,
-                            ),
-                            Expanded(
-                              child: StatusButton(
-                                title: "Highest bills",
-                                value: "\$19.99",
-                                statusColor: TColor.primary10,
-                                onPressed: () {},
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 8,
-                            ),
-                            Expanded(
-                              child: StatusButton(
-                                title: "Lowest bills",
-                                value: "\$5.99",
-                                statusColor: TColor.secondaryG,
-                                onPressed: () {},
-                              ),
-                            )
-                          ],
-                        ),
+                        _buildStatCard("Active Expense", "50"),
+                        const SizedBox(width: 8),
+                        _buildStatCard("High Expense", "20k Frw"),
+                        const SizedBox(width: 8),
+                        _buildStatCard("Lowest Expense", "5.99 Frw"),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
+
+            // Toggle buttons
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20,vertical: 20),
-              height: 54,
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              height: 45,
+              width: 250,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(20),),
+                color: TColor.back,
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Row(
                 children: [
-                  Expanded(child: 
-                      SegmentButton(title: 'Our Income', onPress: () {
+                  Expanded(
+                    child: SegmentButton(
+                      title: 'Our Income',
+                      onPress: () {
                         setState(() {
-                          isIncome = !isIncome;
+                          isIncome = false;
                         });
-                      }, isActive: !isIncome,),
-
+                      },
+                      isActive: !isIncome,
+                    ),
                   ),
-
-
-                  Expanded(child:
-                  SegmentButton(title: 'Upcoming bills', onPress: () {
-                    setState(() {
-                      isIncome = !isIncome;
-                    });
-                  }, isActive: isIncome,),
-
+                  Expanded(
+                    child: SegmentButton(
+                      title: 'Upcoming bills',
+                      onPress: () {
+                        setState(() {
+                          isIncome = true;
+                        });
+                      },
+                      isActive: isIncome,
+                    ),
                   ),
                 ],
               ),
             ),
-             if(!isIncome)
-             ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 20,horizontal: 20),
+
+            // Conditional content
+            if (!isIncome)
+              ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
-                itemCount: incomeArr.length, // Replace with your actual item count
+                itemCount: incomeArr.length,
                 itemBuilder: (context, index) {
-                var incObj = incomeArr[index] as Map? ?? {};
-                return IncomeHomeRow(onPress: (){
-
-                }, incObj: incObj);
-
+                  var incObj = incomeArr[index] as Map? ?? {};
+                  return IncomeHomeRow(onPress: () {}, incObj: incObj);
                 },
               ),
+
             if (isIncome)
               ListView.builder(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: billArr.length,
-                  itemBuilder: (context, index) {
-                    var sObj = billArr[index] as Map? ?? {};
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: billArr.length,
+                itemBuilder: (context, index) {
+                  var sObj = billArr[index] as Map? ?? {};
+                  return UpcomingBillRow(sObj: sObj, onPressed: () {});
+                },
+              ),
 
-                    return UpcomingBillRow(
-                      sObj: sObj,
-                      onPressed: () {},
-                    );
-                  }),
-            const SizedBox(
-              height: 110,
+            const SizedBox(height: 80),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        decoration: BoxDecoration(
+          color: TColor.back,
+          border: Border.all(color: TColor.gray10),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(color: TColor.gray40, fontSize: 10),
             ),
-
-
-
-
+            const SizedBox(height: 6),
+            Center(
+              child: Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -23,7 +23,7 @@ class IconItemRow extends StatelessWidget {
             icon,
             width: 20,
             height: 20,
-            color: TColor.gray20,
+            color: TColor.gray60,
           ),
           const SizedBox(
             width: 15,
@@ -31,14 +31,14 @@ class IconItemRow extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-                color: TColor.white, fontSize: 14, fontWeight: FontWeight.w600),
+                color: TColor.gray70, fontSize: 14, fontWeight: FontWeight.w600),
           ),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.right,
               style: TextStyle(
-                  color: TColor.gray30,
+                  color: TColor.gray60,
                   fontSize: 12,
                   fontWeight: FontWeight.w500),
             ),
@@ -47,7 +47,7 @@ class IconItemRow extends StatelessWidget {
             width: 8,
           ),
           Image.asset("assets/img/next.png",
-              width: 12, height: 12, color: TColor.gray30)
+              width: 12, height: 12, color: TColor.gray60)
         ],
       ),
     );
@@ -77,7 +77,7 @@ class IconItemSwitchRow extends StatelessWidget {
             icon,
             width: 20,
             height: 20,
-            color: TColor.gray20,
+            color: TColor.gray60,
           ),
           const SizedBox(
             width: 15,
@@ -85,7 +85,7 @@ class IconItemSwitchRow extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-                color: TColor.white, fontSize: 14, fontWeight: FontWeight.w600),
+                color: TColor.gray60, fontSize: 14, fontWeight: FontWeight.w600),
           ),
           Spacer(),
           const SizedBox(

@@ -14,31 +14,31 @@ class PrimaryButton extends StatelessWidget {
 
 
   @override
-  Widget build(BuildContext context) {
-    return  SizedBox(
-      width: double.infinity, // Full width button
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: TColor.gray20, // White background
-          foregroundColor: Colors.black, // Text color
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30), // Rounded corners
-          ),
-          padding: EdgeInsets.symmetric(vertical: 16), // Button height
-          shadowColor: TColor.gray.withOpacity(0.5), // Box shadow effect
-          elevation: 5, // Add elevation for a better look
+  @override
+Widget build(BuildContext context) {
+  return SizedBox(
+    width: double.infinity, 
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: TColor.line, // White background
+        foregroundColor: Colors.black, // Text color
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10), // Border radius updated here
         ),
-        onPressed: onPress,
-        child: Text(
-          title,
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: fontWeight,
-            color: color, // Change to black or blue as needed
-          ),
+        padding: EdgeInsets.symmetric(vertical: 16),
+        shadowColor: TColor.gray.withOpacity(0.5),
+        elevation: 5,
+      ),
+      onPressed: onPress,
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+          color: color,
         ),
       ),
-    );
-
-  }
+    ),
+  );
+}
 }

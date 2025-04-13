@@ -22,7 +22,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
       "spend_amount": "25.99",
       "total_budget": "400",
       "left_amount": "250.01",
-      "color": TColor.secondaryG
+      "color": TColor.line
     },
     {
       "name": "Entertainment",
@@ -30,7 +30,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
       "spend_amount": "50.99",
       "total_budget": "600",
       "left_amount": "300.01",
-      "color": TColor.secondary50
+      "color": TColor.line
     },
     {
       "name": "Security",
@@ -38,7 +38,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
       "spend_amount": "5.99",
       "total_budget": "600",
       "left_amount": "250.01",
-      "color": TColor.primary10
+      "color": TColor.line
     },
   ];
 
@@ -46,7 +46,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
   Widget build(BuildContext context) {
     var media = MediaQuery.sizeOf(context);
     return Scaffold(
-      backgroundColor: TColor.gray,
+      backgroundColor: TColor.back,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -76,9 +76,9 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                   child: CustomPaint(
                     painter: CustomArc180Painter(
                       drwArcs: [
-                        ArcValueModel(color: TColor.secondaryG, value: 20),
-                        ArcValueModel(color: TColor.secondary, value: 45),
-                        ArcValueModel(color: TColor.primary10, value: 70),
+                        ArcValueModel(color: TColor.line, value: 20),
+                        ArcValueModel(color: TColor.line, value: 45),
+                        ArcValueModel(color: TColor.line, value: 70),
                       ],
                       end: 50,
                       width: 12,
@@ -89,16 +89,16 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                 Column(
                   children: [
                     Text(
-                      "\$82,90",
+                      "82,90 Rwf",
                       style: TextStyle(
-                          color: TColor.white,
+                          color: TColor.gray80,
                           fontSize: 24,
                           fontWeight: FontWeight.w700),
                     ),
                     Text(
-                      "of \$2,0000 budget",
+                      "of 2,0000 Rwf budget",
                       style: TextStyle(
-                          color: TColor.gray30,
+                          color: TColor.gray60,
                           fontSize: 12,
                           fontWeight: FontWeight.w500),
                     ),
@@ -130,7 +130,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                       Text(
                         "Your budgets are on tack 👍",
                         style: TextStyle(
-                            color: TColor.white,
+                            color: TColor.gray60,
                             fontSize: 14,
                             fontWeight: FontWeight.w600),
                       ),

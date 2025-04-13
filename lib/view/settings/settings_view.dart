@@ -17,7 +17,7 @@ class _SettingsViewState extends State<SettingsView> {
   Widget build(BuildContext context) {
     var media = MediaQuery.sizeOf(context);
     return Scaffold(
-      backgroundColor: TColor.gray,
+      backgroundColor: TColor.back,
       body: SingleChildScrollView(
         child: SafeArea(
           child: Column(children: [
@@ -40,7 +40,7 @@ class _SettingsViewState extends State<SettingsView> {
                   children: [
                     Text(
                       "Settings",
-                      style: TextStyle(color: TColor.gray30, fontSize: 16),
+                      style: TextStyle(color: TColor.gray80, fontSize: 16),
                     )
                   ],
                 ),
@@ -68,7 +68,7 @@ class _SettingsViewState extends State<SettingsView> {
                 Text(
                   "Code For Any",
                   style: TextStyle(
-                      color: TColor.white,
+                      color: TColor.gray60,
                       fontSize: 20,
                       fontWeight: FontWeight.w700),
                 )
@@ -83,7 +83,7 @@ class _SettingsViewState extends State<SettingsView> {
                 Text(
                   "codeforany@gmail.com",
                   style: TextStyle(
-                      color: TColor.gray30,
+                      color: TColor.gray60,
                       fontSize: 12,
                       fontWeight: FontWeight.w500),
                 )
@@ -101,13 +101,13 @@ class _SettingsViewState extends State<SettingsView> {
                   border: Border.all(
                     color: TColor.border.withOpacity(0.15),
                   ),
-                  color: TColor.gray60.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(15),
+                  color: TColor.white,
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   "Edit profile",
                   style: TextStyle(
-                      color: TColor.white,
+                      color: TColor.gray60,
                       fontSize: 12,
                       fontWeight: FontWeight.w600),
                 ),
@@ -123,7 +123,7 @@ class _SettingsViewState extends State<SettingsView> {
                     child: Text(
                       "General",
                       style: TextStyle(
-                          color: TColor.white,
+                          color: TColor.gray60,
                           fontSize: 14,
                           fontWeight: FontWeight.w600),
                     ),
@@ -134,8 +134,8 @@ class _SettingsViewState extends State<SettingsView> {
                       border: Border.all(
                         color: TColor.border.withOpacity(0.1),
                       ),
-                      color: TColor.gray60.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
+                      color: TColor.white,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Column(
                       children: [
@@ -163,7 +163,7 @@ class _SettingsViewState extends State<SettingsView> {
                     child: Text(
                       "My bills",
                       style: TextStyle(
-                          color: TColor.white,
+                          color: TColor.gray60,
                           fontSize: 14,
                           fontWeight: FontWeight.w600),
                     ),
@@ -174,8 +174,8 @@ class _SettingsViewState extends State<SettingsView> {
                       border: Border.all(
                         color: TColor.border.withOpacity(0.1),
                       ),
-                      color: TColor.gray60.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
+                      color: TColor.white,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Column(
                       children: [
@@ -194,7 +194,7 @@ class _SettingsViewState extends State<SettingsView> {
                         IconItemRow(
                           title: "Default currency",
                           icon: "assets/img/money.png",
-                          value: "USD (\$)",
+                          value: "Rwf",
                         ),
                         
                       ],
@@ -206,7 +206,7 @@ class _SettingsViewState extends State<SettingsView> {
                     child: Text(
                       "Appearance",
                       style: TextStyle(
-                          color: TColor.white,
+                          color: TColor.gray80,
                           fontSize: 14,
                           fontWeight: FontWeight.w600),
                     ),
@@ -217,8 +217,8 @@ class _SettingsViewState extends State<SettingsView> {
                       border: Border.all(
                         color: TColor.border.withOpacity(0.1),
                       ),
-                      color: TColor.gray60.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
+                      color: TColor.white,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Column(
                       children: [
