@@ -47,7 +47,7 @@ class _SearchScreenState extends State<SearchScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            SizedBox(height: 40,),
+            const SizedBox(height: 40,),
 
 
 
@@ -60,7 +60,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 )
               ],
             ),
-            SizedBox(height: 40,),
+            const SizedBox(height: 40,),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),

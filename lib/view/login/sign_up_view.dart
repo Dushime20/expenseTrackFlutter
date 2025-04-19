@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/common_widget/primary_button.dart';
 import 'package:untitled/common_widget/secondary_button.dart';
+import 'package:untitled/common_widget/snack_bar.dart';
+import 'package:untitled/service/AuthenticationService.dart';
 import 'package:untitled/view/login/sign_in_view.dart';
 
 class SignUpView extends StatefulWidget {
@@ -19,12 +21,80 @@ class _SignUpViewState extends State<SignUpView> {
   TextEditingController textPassword = TextEditingController();
   TextEditingController textConfirmPass = TextEditingController();
 
+  bool isLoading = false;
+
+  @override
+  void dispose(){
+    super.dispose();
+    textEmail.dispose();
+    textPassword.dispose();
+    textConfirmPass.dispose();
+    textName.dispose();
+    textPhone.dispose();
+
+  }
+
+  void signUpUser() async {
+
+    // Validate empty fields
+    if (textName.text.isEmpty ||
+        textPhone.text.isEmpty ||
+        textEmail.text.isEmpty ||
+        textPassword.text.isEmpty ||
+        textConfirmPass.text.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Please fill in all the fields",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    String res = await AuthenticationService().signUpUser(
+      email: textEmail.text,
+      name: textName.text,
+      password: textPassword.text,
+      phone: textPhone.text,
+      confirmPassword: textConfirmPass.text,
+    );
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (res == "success") {
+      Get.snackbar(
+        "Success",
+        "Signup completed successfully",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+      Get.to(() => const SignInView());
+    } else {
+      Get.snackbar(
+        "Error",
+        res, // Show the actual error message
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    var media = MediaQuery.sizeOf(context); 
+    var media = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: Colors.white, 
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -77,7 +147,9 @@ class _SignUpViewState extends State<SignUpView> {
 
                     PrimaryButton(
                       title: "Sign Up",
-                      onPress: () {},
+                      onPress: () {
+                        signUpUser();
+                      },
                       color: Colors.white,
                     ),
 
@@ -101,7 +173,7 @@ class _SignUpViewState extends State<SignUpView> {
                               SecondaryButton(
                                 title: "Sign In",
                                 onPress: () {
-                                  Get.to(SignInView());
+                                  Get.to(const SignInView());
                                 },
                                 color: Colors
                                     .green, // Matching the login button color

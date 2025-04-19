@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:untitled/service/AuthenticationService.dart';
+import 'package:untitled/view/login/sign_in_view.dart';
+
 
 import '../../common/color_extension.dart';
 import '../../common_widget/icon_item_row.dart';
@@ -44,6 +48,24 @@ class _SettingsViewState extends State<SettingsView> {
                     )
                   ],
                 ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      color: TColor.secondary,
+
+                      icon: const Icon(Icons.logout),
+                      onPressed: () async{
+                        await AuthenticationService().signOut();
+                        Get.to(const SignInView());
+                      },
+                      tooltip: "Logout",
+                      iconSize: 40,
+                    ),
+
+                  ]
+
+                )
               ],
             ),
             const SizedBox(
@@ -139,7 +161,7 @@ class _SettingsViewState extends State<SettingsView> {
                     ),
                     child: Column(
                       children: [
-                        IconItemRow(
+                        const IconItemRow(
                           title: "Security",
                           icon: "assets/img/face_id.png",
                           value: "FaceID",
@@ -177,7 +199,7 @@ class _SettingsViewState extends State<SettingsView> {
                       color: TColor.white,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Column(
+                    child: const Column(
                       children: [
                         IconItemRow(
                           title: "Sorting",
@@ -222,21 +244,13 @@ class _SettingsViewState extends State<SettingsView> {
                     ),
                     child: Column(
                       children: [
-                        IconItemRow(
-                          title: "App icon",
-                          icon: "assets/img/app_icon.png",
-                          value: "Default",
-                        ),
-                        IconItemRow(
+
+                        const IconItemRow(
                           title: "Theme",
                           icon: "assets/img/light_theme.png",
                           value: "Dark",
                         ),
-                        IconItemRow(
-                          title: "Font",
-                          icon: "assets/img/font.png",
-                          value: "Inter",
-                        ),
+
                         
                       ],
                     ),

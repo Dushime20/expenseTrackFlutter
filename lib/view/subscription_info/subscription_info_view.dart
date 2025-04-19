@@ -124,23 +124,23 @@ class _SubscriptionInfoViewState extends State<SubscriptionInfoView> {
                                       title: "Name",
                                       value: widget.sObj["name"],
                                     ),
-                                    ItemRow(
+                                    const ItemRow(
                                       title: "Description",
                                       value: "Music app",
                                     ),
-                                    ItemRow(
+                                    const ItemRow(
                                       title: "Category",
                                       value: "Enterteintment",
                                     ),
-                                    ItemRow(
+                                    const ItemRow(
                                       title: "First payment",
                                       value: "08.07.2023",
                                     ),
-                                    ItemRow(
+                                    const ItemRow(
                                       title: "Reminder",
                                       value: "Never",
                                     ),
-                                    ItemRow(
+                                    const ItemRow(
                                       title: "Currency",
                                       value: "USD (\$)",
                                     ),
@@ -177,11 +177,11 @@ class _SubscriptionInfoViewState extends State<SubscriptionInfoView> {
                     dashPattern: const [5, 10],
                     padding: EdgeInsets.zero,
                     strokeWidth: 1,
+                    radius: const Radius.circular(16),
+                    color: TColor.gray,
                     child: SizedBox(
                       height: 0,
                     ),
-                    radius: const Radius.circular(16),
-                    color: TColor.gray,
                   )),
                   Container(
                     width: 30,

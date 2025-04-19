@@ -25,7 +25,7 @@ Widget build(BuildContext context) {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10), // Border radius updated here
         ),
-        padding: EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         shadowColor: TColor.gray.withOpacity(0.5),
         elevation: 5,
       ),

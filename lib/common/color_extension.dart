@@ -8,7 +8,7 @@ class TColor {
   static Color get primary5 => const Color(0xffC9A7FF);
   static Color get primary0 => const Color(0xffE4D3FF);
 
-  static Color get secondary => const Color(0xffFF7966);
+  static Color get secondary => const Color(0xFFFF4C4C);
   static Color get secondary50 => const Color(0xffFFA699);
   static Color get secondary0 => const Color(0xffFFD2CC);
 

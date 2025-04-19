@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/common_widget/primary_button.dart';
 import 'package:untitled/common_widget/secondary_button.dart';
+import 'package:untitled/service/AuthenticationService.dart';
 import 'package:untitled/view/home/home_view.dart';
 import 'package:untitled/view/main_tab/main_tab_view.dart';
 import 'sign_up_view.dart';
@@ -18,6 +21,74 @@ class _SignInViewState extends State<SignInView> {
   TextEditingController textEmail = TextEditingController();
   TextEditingController textPassword = TextEditingController();
   bool isRemember = false;
+  bool isLoading = false;
+  final box = GetStorage();
+
+  @override
+  void dispose(){
+  super.dispose();
+  textEmail.dispose();
+  textPassword.dispose();
+
+  }
+// sign in user
+  void signInUser() async {
+    // Validate empty fields
+    if (textEmail.text.isEmpty || textPassword.text.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Please fill in all the fields",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    Map<String, dynamic> res = await AuthenticationService().loginUser(  // ✅ Changed type from String to Map
+      email: textEmail.text,
+      password: textPassword.text,
+    );
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (res['status'] == "success") {  //  Checking 'status' field from Map
+      String uid = res['uid'];
+      String? email = res['email'];
+
+      // Save to GetStorage
+      box.write('uid', uid);
+      box.write('email', email ?? '');
+      box.write('isLoggedIn', true);
+
+      Get.snackbar(
+        "Success",
+        "Sign in completed successfully",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+      Get.to(() => const MainTabView());
+    } else {
+      Get.snackbar(
+        "Error",
+        res['message'],  //  Show specific error from the Map
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+    }
+  }
+
+
+  // forget password
+  final auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +104,7 @@ class _SignInViewState extends State<SignInView> {
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 padding:
-                    const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                  const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -86,9 +157,13 @@ class _SignInViewState extends State<SignInView> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {},
+
+                          onPressed: () {
+                            myDialogBox(context);
+                          },
                           child: Text(
                             "Forgot password",
+
                             style: TextStyle(
                               color: TColor.gray50,
                               fontSize: 14,
@@ -101,7 +176,7 @@ class _SignInViewState extends State<SignInView> {
                     PrimaryButton(
                       title: "Sign In",
                       onPress: () {
-                        Get.to(const MainTabView());
+                        signInUser();
                       },
                       color: TColor.white,
                     ),
@@ -176,4 +251,94 @@ class _SignInViewState extends State<SignInView> {
       ],
     );
   }
+
+  void myDialogBox(BuildContext context){
+    showDialog(context: context, builder: (BuildContext context){
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          decoration: BoxDecoration(
+              color: TColor.white,
+              borderRadius: BorderRadius.circular(20)
+          ),
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Forget Password",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(Icons.close),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 20,),
+              TextField(
+                controller: textEmail,
+                decoration:
+                InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Enter the email to reset password",
+                  hintText: "eg my@gmail.com",
+                ),
+              ),
+              SizedBox(height: 20,),
+              ElevatedButton(
+                onPressed: () async{
+                  await auth.sendPasswordResetEmail(email: textEmail.text).then((value){
+                    //if success show this
+                    Get.snackbar("Success", "we have sent you the reset password link to you email id, please check it",
+                      backgroundColor: Colors.green,
+                      colorText: Colors.white,
+                      snackPosition: SnackPosition.TOP,);
+                  }).onError((error, stackTrace){
+                    //if not success show this
+                    Get.snackbar(
+                      "Error",
+                      error.toString(),
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                      snackPosition: SnackPosition.TOP,
+                    );
+                  });
+
+                  Navigator.pop(context);
+                  textEmail.clear();
+                  
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: TColor.line,
+                ),
+                child: Text(
+                  "Send",
+                  style: TextStyle(
+                    color: TColor.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+
+            ],
+          ),
+        ),
+
+      );
+    });
+  }
 }
+
+
+

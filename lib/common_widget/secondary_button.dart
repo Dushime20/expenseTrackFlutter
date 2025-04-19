@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:untitled/common/color_extension.dart';
 
 class SecondaryButton extends StatelessWidget {
   final String title;

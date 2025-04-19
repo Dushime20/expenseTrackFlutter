@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:untitled/view/add_subscription/add_subscription_view.dart';
-import 'package:untitled/view/profile/search_screen.dart';
+import 'package:untitled/view/search/search_screen.dart';
 import 'package:untitled/view/settings/settings_view.dart';
 import 'package:untitled/view/spending_budgets/spending_budgets_view.dart';
 

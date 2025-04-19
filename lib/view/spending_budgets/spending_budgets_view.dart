@@ -5,7 +5,9 @@ import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/common_widget/budgets_row.dart';
 import 'package:untitled/common_widget/custom_arc_180_painter.dart';
 
+import '../category/add_category_view.dart';
 import '../settings/settings_view.dart';
+import 'package:get/get.dart';
 
 class SpendingBudgetsView extends StatefulWidget {
   const SpendingBudgetsView({super.key});
@@ -54,7 +56,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
               padding: const EdgeInsets.only(top: 35, right: 10),
               child: Row(
                 children: [
-                  Spacer(),
+                  const Spacer(),
                   IconButton(
                       onPressed: () {
                         Navigator.push(
@@ -70,7 +72,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
             Stack(
               alignment: Alignment.bottomCenter,
               children: [
-                Container(
+                SizedBox(
                   width: media.width * 0.5,
                   height: media.width * 0.30,
                   child: CustomPaint(
@@ -171,21 +173,27 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     alignment: Alignment.center,
+
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          "Add new category ",
-                          style: TextStyle(
-                              color: TColor.gray30,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600),
+                        InkWell(
+                          onTap: (){
+                            Get.to(()=> const AddCategoryView());
+                          },
+                          child: Text(
+                            "Add new category ",
+                            style: TextStyle(
+                                color: TColor.gray60,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600),
+                          ),
                         ),
                         Image.asset(
                           "assets/img/add.png",
                           width: 12,
                           height: 12,
-                          color: TColor.gray30,
+                          color: TColor.gray60,
                         )
                       ],
                     ),
