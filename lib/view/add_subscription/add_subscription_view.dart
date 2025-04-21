@@ -119,7 +119,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                       ),
                       SizedBox(
                         width: media.width,
-                        height: media.width * 0.6,
+                        height: media.width * 0.5,
                         child: CarouselSlider.builder(
                           options: CarouselOptions(
                             autoPlay: false,
@@ -186,7 +186,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                         //     catCtrl.filterCategoryByName(val);
                         //   },
                         // ),
-                        const SizedBox(height: 12),
+
                         DropdownButtonFormField<String>(
                           value: selectedCategoryId,
                           hint: Text('Select Category', style: TextStyle(color: TColor.gray60)),
@@ -224,7 +224,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
               // Description Field
               Padding(
                   padding:
-                  const EdgeInsets.only(top: 30, left: 20, right: 20),
+                  const EdgeInsets.only(top: 20, left: 20, right: 20),
                   child: RoundedTextField(
                       title: "Description",
                       titleAlign: TextAlign.center,
@@ -233,55 +233,13 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
               // Amount Section
               Padding(
                 padding:
-                const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ImageButton(
-                      image: "assets/img/minus.png",
-                      onPressed: () {
-                        amountVal -= 1;
-                        if (amountVal < 0) amountVal = 0;
-                        homeCtrl.updateAmount(amountVal);
-                        setState(() {});
-                      },
-                    ),
-                    Column(
-                      children: [
-                        Text(
-                          "Monthly price",
-                          style: TextStyle(
-                              color: TColor.gray60,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "${amountVal.toStringAsFixed(2)} Rwf",
-                          style: TextStyle(
-                              color: TColor.gray60,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          width: 150,
-                          height: 1,
-                          color: TColor.gray60,
-                        )
-                      ],
-                    ),
-                    ImageButton(
-                      image: "assets/img/plus.png",
-                      onPressed: () {
-                        amountVal += 1;
-                        homeCtrl.updateAmount(amountVal);
-                        setState(() {});
-                      },
-                    )
-                  ],
-                ),
-              ),
+                const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+
+                  child: RoundedTextField(
+                      title: "Amount",
+                      titleAlign: TextAlign.center,
+                      controller: homeCtrl.amountCtrl)),
+
 
               // Add Buttons
               Padding(

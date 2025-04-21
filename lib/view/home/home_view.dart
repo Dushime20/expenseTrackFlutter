@@ -87,14 +87,14 @@ class _HomeViewState extends State<HomeView> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const SizedBox(height: 10),
-                        const Text(
-                          "1,235 Frw",
-                          style: TextStyle(
+                        Obx(() => Text(
+                          "${ctrl.monthlyExpense.value.toStringAsFixed(0)} Frw",
+                          style: const TextStyle(
                             color: Colors.black,
                             fontSize: 36,
                             fontWeight: FontWeight.w700,
                           ),
-                        ),
+                        )),
                         const SizedBox(height: 6),
                         Text(
                           "This month Expenses",

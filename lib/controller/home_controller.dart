@@ -14,9 +14,12 @@ class HomeController extends GetxController{
 
   late CollectionReference expenseCollection;
   late CollectionReference incomeCollection;
-
+  final TextEditingController amountCtrl = TextEditingController();
   TextEditingController descriptionCtrl = TextEditingController();
+
   double amountVal = 0.0;
+  var monthlyExpense = 0.0.obs;
+  var monthlyIncome = 0.0.obs;
 
   List<Expense> expense = [];
 
@@ -34,6 +37,8 @@ class HomeController extends GetxController{
     incomeCollection = firestore.collection("income");
     await fetchIncome();
     await  fetchExpense();
+    await fetchMonthlyIncomeAndExpense();
+
     super.onInit();
   }
 
@@ -42,10 +47,12 @@ class HomeController extends GetxController{
     try {
       DocumentReference doc = expenseCollection.doc();
 
+      final double parsedAmount = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
+
       Expense expense = Expense(
         id: doc.id,
         name: descriptionCtrl.text,
-        amount: amountVal,
+        amount: parsedAmount,
         date: DateTime.now(),
         userId: auth.currentUser!.uid,
         categoryId: categoryId, // Make sure your Expense model has this field
@@ -93,6 +100,39 @@ class HomeController extends GetxController{
 
   }
 
+  //totalMonthly expense
+
+  Future<double> calculateMonthlyExpense() async {
+    try {
+      DateTime now = DateTime.now();
+      DateTime startOfMonth = DateTime(now.year, now.month, 1);
+      DateTime endOfMonth = DateTime(now.year, now.month + 1, 1).subtract(Duration(milliseconds: 1));
+
+      QuerySnapshot querySnapshot = await expenseCollection
+          .where("userId", isEqualTo: auth.currentUser!.uid)
+          .where("date", isGreaterThanOrEqualTo: startOfMonth)
+          .where("date", isLessThanOrEqualTo: endOfMonth)
+          .get();
+
+      double totalExpense = 0;
+      for (var doc in querySnapshot.docs) {
+        totalExpense += (doc['amount'] ?? 0).toDouble();
+      }
+
+      return totalExpense;
+    } catch (e) {
+      print("Error calculating monthly expense: $e");
+      return 0.0;
+    }
+  }
+
+  //fetch total monthly income and expense
+  Future<void> fetchMonthlyIncomeAndExpense() async {
+    monthlyExpense.value = await calculateMonthlyExpense();
+    monthlyIncome.value = await calculateMonthlyIncome();
+  }
+
+
   deleteExpense(String id) async{
    try {
      await expenseCollection.doc(id).delete();
@@ -137,6 +177,33 @@ class HomeController extends GetxController{
 
 
   }
+
+  // total income in month
+  Future<double> calculateMonthlyIncome() async {
+    try {
+      DateTime now = DateTime.now();
+      DateTime startOfMonth = DateTime(now.year, now.month, 1);
+      DateTime endOfMonth = DateTime(now.year, now.month + 1, 1).subtract(Duration(milliseconds: 1));
+
+      QuerySnapshot querySnapshot = await incomeCollection
+          .where("userId", isEqualTo: auth.currentUser!.uid)
+          .where("date", isGreaterThanOrEqualTo: startOfMonth)
+          .where("date", isLessThanOrEqualTo: endOfMonth)
+          .get();
+
+      double totalIncome = 0;
+      for (var doc in querySnapshot.docs) {
+        totalIncome += (doc['amount'] ?? 0).toDouble();
+      }
+
+      return totalIncome;
+    } catch (e) {
+      print("Error calculating monthly income: $e");
+      return 0.0;
+    }
+  }
+
+
 
   fetchIncome() async {
     try {
