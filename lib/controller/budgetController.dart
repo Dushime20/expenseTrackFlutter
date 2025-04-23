@@ -14,6 +14,7 @@ class BudgetController extends GetxController {
 
   late CollectionReference budgetCollection;
   late CollectionReference expenseCollection;
+  late CollectionReference categoryCollection;
 
   final TextEditingController amountCtrl = TextEditingController();
 
@@ -33,9 +34,12 @@ class BudgetController extends GetxController {
     super.onInit();
     expenseCollection =firestore.collection('expense');
     budgetCollection = firestore.collection('budget');
+    categoryCollection = firestore.collection('category');
     fetchBudget();
     getCurrentMonthBudgetStatus();
+
     loadBudgetStatus();// Optionally fetch budgets when controller initializes
+    loadBudgetsByCategory();
   }
 
   /// Add a budget to Firestore
@@ -81,6 +85,67 @@ class BudgetController extends GetxController {
       Get.snackbar("Error", "Failed to add budget: $e");
     }
   }
+
+  var budgetsByCategory = <Map<String, dynamic>>[].obs;
+
+  Future<void> loadBudgetsByCategory() async {
+    final data = await fetchBudgetByCategoryWithNames();
+    budgetsByCategory.value = data.entries.map((entry) => {
+      "name": entry.key,
+      "amount": entry.value,
+    }).toList();
+    update();
+  }
+
+
+
+//fetchBudgetByCategoryWithNames
+  Future<Map<String, double>> fetchBudgetByCategoryWithNames() async {
+    try {
+      final userId = auth.currentUser!.uid;
+
+      // 1. Fetch all budgets for the current user
+      QuerySnapshot budgetSnapshot = await budgetCollection
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      if (budgetSnapshot.docs.isEmpty) {
+        return {};
+      }
+
+      // 2. Group by categoryId and sum amount
+      Map<String, double> categoryAmounts = {};
+
+      for (var doc in budgetSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final String categoryId = data['categoryId'];
+        final double amount = (data['amount'] as num).toDouble();
+
+        categoryAmounts[categoryId] = (categoryAmounts[categoryId] ?? 0.0) + amount;
+      }
+
+      // 3. Fetch all categories and map them: {categoryId: name}
+      QuerySnapshot categorySnapshot = await categoryCollection.get();
+      Map<String, String> categoryNames = {
+        for (var doc in categorySnapshot.docs)
+          doc.id: (doc['name'] as String)
+      };
+
+      // 4. Map category IDs to names
+      Map<String, double> result = {};
+      categoryAmounts.forEach((categoryId, amount) {
+        final name = categoryNames[categoryId] ?? 'Unknown';
+        result[name] = amount;
+      });
+
+      return result;
+    } catch (e) {
+      print("Error: $e");
+      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
+      return {};
+    }
+  }
+
 
 
   Future<void> loadBudgetStatus() async {
@@ -228,6 +293,19 @@ class BudgetController extends GetxController {
       Get.snackbar("Error", "Failed to fetch budgets: $e");
     } finally {
       update();
+    }
+  }
+
+
+  //delete expense
+  deleteExpense(String id) async{
+    try {
+      await budgetCollection.doc(id).delete();
+      fetchBudget();
+      Get.snackbar("Success", "expense added successfully", colorText: TColor.line);
+    } catch (e) {
+      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
+      print(e);
     }
   }
 }

@@ -167,9 +167,9 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
-                  itemCount: budgetArr.length,
+                  itemCount: ctrl.budgetsByCategory.length,
                   itemBuilder: (context, index) {
-                    var bObj = budgetArr[index] as Map? ?? {};
+                    var bObj = ctrl.budgetsByCategory[index];
 
                     return BudgetsRow(
                       bObj: bObj,

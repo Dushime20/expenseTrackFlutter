@@ -37,7 +37,9 @@ class HomeController extends GetxController{
     incomeCollection = firestore.collection("income");
     await fetchIncome();
     await  fetchExpense();
+    await fetchExpenseStatus();
     await fetchMonthlyIncomeAndExpense();
+    await loadExpenseStats();
 
     super.onInit();
   }
@@ -70,6 +72,97 @@ class HomeController extends GetxController{
       print(e);
     }
   }
+
+  //update expense
+  Future<void> updateExpense({
+    required String incomeId,
+    required String categoryId,
+    required String newName,
+    required double newAmount,
+  }) async {
+    try {
+      DocumentReference doc = expenseCollection.doc(incomeId);
+
+      Expense updatedExpense = Expense(
+        id: incomeId,
+        name: newName,
+        amount: newAmount,
+        date: DateTime.now(), // Optionally keep original date if needed
+        userId: auth.currentUser!.uid,
+        categoryId: categoryId,
+      );
+
+      final expenseJson = updatedExpense.toJson();
+
+      await doc.update(expenseJson); // update instead of set
+
+      Get.snackbar("Success", "Income updated successfully", colorText: TColor.line);
+      setValueDefault(); // Optional: Reset form values
+      await fetchIncome(); // Refresh income list
+    } catch (e) {
+      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
+      print(e);
+    }
+  }
+  RxDouble totalExpense = RxDouble(0.0);
+  RxDouble highestExpense = RxDouble(0.0);
+  RxDouble lowestExpense = RxDouble(0.0);
+
+  Future<void> loadExpenseStats() async {
+    final stats = await fetchExpenseStatus();
+    totalExpense.value = stats['total']??0.0;
+    highestExpense.value = stats['highest'] ?? 0.0;
+    lowestExpense.value = stats['lowest'] ?? 0.0;
+    update();
+  }
+
+  //fetch expense status low,high and total
+  Future<Map<String, dynamic>> fetchExpenseStatus() async {
+    try {
+      final userId = auth.currentUser!.uid;
+
+      QuerySnapshot snapshot = await expenseCollection
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        print("No expenses found.");
+        return {
+          "total": 0.0,   // total count of expenses (number of documents)
+          "highest": 0.0,
+          "lowest": 0.0,
+        };
+      }
+
+      List<double> amounts = snapshot.docs
+          .map((doc) => (doc['amount'] as num).toDouble())
+          .toList();
+
+      double highest = amounts.reduce((a, b) => a > b ? a : b);
+      double lowest = amounts.reduce((a, b) => a < b ? a : b);
+
+      print("Highest: $highest");
+      print("Lowest: $lowest");
+      return {
+        "total": snapshot.docs.length.toDouble(), // total count as a double
+        "highest": highest,
+        "lowest": lowest,
+      };
+    } catch (e) {
+      print("Error fetching expenses: $e");
+      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
+      return {
+        "total": 0.0,
+        "highest": 0.0,
+        "lowest": 0.0,
+      };
+    }
+  }
+
+
+
+
+
 
   fetchExpense() async {
     try {
@@ -132,7 +225,7 @@ class HomeController extends GetxController{
     monthlyIncome.value = await calculateMonthlyIncome();
   }
 
-
+ //delete expense
   deleteExpense(String id) async{
    try {
      await expenseCollection.doc(id).delete();
@@ -177,6 +270,39 @@ class HomeController extends GetxController{
 
 
   }
+
+  //update income
+  Future<void> updateIncome({
+    required String incomeId,
+    required String categoryId,
+    required String newName,
+    required double newAmount,
+  }) async {
+    try {
+      DocumentReference doc = incomeCollection.doc(incomeId);
+
+      Income updatedIncome = Income(
+        id: incomeId,
+        name: newName,
+        amount: newAmount,
+        date: DateTime.now(), // Optionally keep original date if needed
+        userId: auth.currentUser!.uid,
+        categoryId: categoryId,
+      );
+
+      final incomeJson = updatedIncome.toJson();
+
+      await doc.update(incomeJson); // update instead of set
+
+      Get.snackbar("Success", "Income updated successfully", colorText: TColor.line);
+      setValueDefault(); // Optional: Reset form values
+      await fetchIncome(); // Refresh income list
+    } catch (e) {
+      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
+      print(e);
+    }
+  }
+
 
   // total income in month
   Future<double> calculateMonthlyIncome() async {
@@ -233,7 +359,7 @@ class HomeController extends GetxController{
     }
 
   }
-
+//delete income
   deleteIncome(String id) async{
     try {
       await incomeCollection.doc(id).delete();

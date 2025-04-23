@@ -143,11 +143,11 @@ class _HomeViewState extends State<HomeView> {
                       right: 20,
                       child: Row(
                         children: [
-                          _buildStatCard("Active Expense", "50"),
+                          Obx(() => _buildStatCard("Active Expense",ctrl.totalExpense.value.toString())),
                           const SizedBox(width: 8),
-                          _buildStatCard("High Expense", "20k Frw"),
+                          Obx(() => _buildStatCard("Low Expense", "${ctrl.lowestExpense.value.toStringAsFixed(2)} Frw")),
                           const SizedBox(width: 8),
-                          _buildStatCard("Lowest Expense", "5.99 Frw"),
+                          Obx(() => _buildStatCard("High Expense", "${ctrl.highestExpense.value.toStringAsFixed(2)} Frw")),
                         ],
                       ),
                     ),
