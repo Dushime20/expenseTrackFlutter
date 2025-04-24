@@ -48,24 +48,7 @@ class _SettingsViewState extends State<SettingsView> {
                     )
                   ],
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      color: TColor.secondary,
 
-                      icon: const Icon(Icons.logout),
-                      onPressed: () async{
-                        await AuthenticationService().signOut();
-                        Get.to(const SignInView());
-                      },
-                      tooltip: "Logout",
-                      iconSize: 40,
-                    ),
-
-                  ]
-
-                )
               ],
             ),
             const SizedBox(
@@ -161,21 +144,19 @@ class _SettingsViewState extends State<SettingsView> {
                     ),
                     child: Column(
                       children: [
-                        const IconItemRow(
-                          title: "Security",
-                          icon: "assets/img/face_id.png",
-                          value: "FaceID",
+                        IconItemRow(
+                          title: "Password",
+                          value: "change password",
+                          onTap: (){},
                         ),
-                        IconItemSwitchRow(
-                          title: "iCloud Sync",
-                          icon: "assets/img/icloud.png",
-                          value: isActive,
-                          didChange: (newVal) {
-                            setState(() {
-                              isActive = newVal;
-                            });
-                          },
+
+                        IconItemRow(
+                          title: "Theme",
+
+                          value: "Dark",
+                          onTap: (){},
                         ),
+
                       ],
                     ),
                   ),
@@ -183,7 +164,7 @@ class _SettingsViewState extends State<SettingsView> {
                   Padding(
                     padding: const EdgeInsets.only(top: 20, bottom: 8),
                     child: Text(
-                      "My bills",
+                      "Report",
                       style: TextStyle(
                           color: TColor.gray60,
                           fontSize: 14,
@@ -199,62 +180,41 @@ class _SettingsViewState extends State<SettingsView> {
                       color: TColor.white,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Column(
-                      children: [
-                        IconItemRow(
-                          title: "Sorting",
-                          icon: "assets/img/sorting.png",
-                          value: "Date",
-                        ),
-
-                        IconItemRow(
-                          title: "Summary",
-                          icon: "assets/img/chart.png",
-                          value: "Average",
-                        ),
-
-                        IconItemRow(
-                          title: "Default currency",
-                          icon: "assets/img/money.png",
-                          value: "Rwf",
-                        ),
-                        
-                      ],
-                    ),
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20, bottom: 8),
-                    child: Text(
-                      "Appearance",
-                      style: TextStyle(
-                          color: TColor.gray80,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: TColor.border.withOpacity(0.1),
-                      ),
-                      color: TColor.white,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
                     child: Column(
                       children: [
+                        IconItemRow(
+                          title: "Expense Report",
 
-                        const IconItemRow(
-                          title: "Theme",
-                          icon: "assets/img/light_theme.png",
-                          value: "Dark",
+                          value: "Date",
+                          onTap: (){},
+                        ),
+
+                        IconItemRow(
+                          title: "Income Report",
+
+                          value: "Average",
+                          onTap: (){},
+                        ),
+                        IconItemRow(
+                          title: "Budget Report",
+
+                          value: "Average",
+                          onTap: (){},
                         ),
 
                         
                       ],
                     ),
                   ),
+
+                 SizedBox(height: 30,),
+
+                  TextButton(onPressed: () async{
+                    await AuthenticationService().signOut();
+                    Get.to(const SignInView());
+                  }, child:
+                  Text("Logout",style: TextStyle(color: TColor.gray70, fontSize: 16),)),
+
                 ],
               ),
             )
