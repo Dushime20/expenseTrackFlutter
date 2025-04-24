@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:untitled/common/color_extension.dart';
+import 'package:untitled/controller/budgetController.dart';
+import 'package:untitled/controller/categoryController.dart';
+import 'package:untitled/controller/home_controller.dart';
 
 class AuthenticationService {
 
@@ -23,33 +26,47 @@ class AuthenticationService {
     required String password,
     required String phone,
     required String confirmPassword,
-  }) async
-  {
+  }) async {
     String res = "Some error occurred";
 
-    try {
-      // Check if password and confirmPassword match
-      if (password != confirmPassword) {
-        return "Passwords do not match";
-      }
+    // Perform all validations before Firebase operations
+    if (email.isEmpty || name.isEmpty || password.isEmpty || phone.isEmpty || confirmPassword.isEmpty) {
+      return "Please fill in all the fields.";
+    }
 
-      // Register the user with Firebase Auth
+    if (!isValidEmail(email)) {
+      return "Invalid email address format.";
+    }
+
+    if (!isValidPassword(password)) {
+      return "Password must be at least 8 characters long and include a mix of letters, numbers, and special characters.";
+    }
+
+    if (password != confirmPassword) {
+      return "Passwords do not match.";
+    }
+
+    try {
+      await box.erase(); // Clear local box
+      await FirebaseAuth.instance.signOut(); // Ensure no user is logged in
+
+      // Proceed to create the user after validations pass
       UserCredential credential = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Print user creation status
       print("User created successfully with UID: ${credential.user!.uid}");
 
-      // Add the user to Firestore
+      // Save user data to Firestore
       await firestore.collection("users").doc(credential.user!.uid).set({
         "name": name,
         "email": email,
         "phone": phone,
         "uid": credential.user!.uid,
       });
-      Get.snackbar("Success", "Signup successfully", colorText: TColor.line);
+
+      Get.snackbar("Success", "Signup successful", colorText: TColor.line);
       res = "success";
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
@@ -61,16 +78,17 @@ class AuthenticationService {
       } else {
         res = e.message ?? 'An unknown error occurred';
       }
-
     } catch (e) {
       res = e.toString();
     }
+
     print("The response is: $res");
     return res;
   }
 
 
-  Future<Map<String, dynamic>> loginUser({  // ✅ Changed return type from String to Map
+
+  Future<Map<String, dynamic>> loginUser({
     required String email,
     required String password,
   }) async {
@@ -78,6 +96,11 @@ class AuthenticationService {
       'status': 'error',
       'message': 'Some error occurred',
     };
+
+    await box.erase();
+    // Log out the user to ensure no user is logged in when the app starts
+    await FirebaseAuth.instance.signOut();
+
 
     try {
       final userCredential = await auth.signInWithEmailAndPassword(
@@ -87,6 +110,25 @@ class AuthenticationService {
 
       final uid = userCredential.user?.uid;
       final userEmail = userCredential.user?.email;
+
+
+      /// Now that login succeeded, fetch all the data
+      final controller = Get.find<HomeController>();
+      final control = Get.find<CategoryController>();
+      final ctrl = Get.find<BudgetController>();// or whatever your controller is
+      await controller.fetchIncome();
+      await controller.fetchExpense();
+      await controller.fetchExpenseStatus();
+      await controller.fetchMonthlyIncomeAndExpense();
+      await controller.loadExpenseStats();
+
+       await ctrl.fetchBudget();
+       await ctrl.getCurrentMonthBudgetStatus();
+
+       await ctrl.loadBudgetStatus();// Optionally fetch budgets when controller initializes
+       await ctrl.loadBudgetsByCategory();
+
+      await control.fetchCategory();
 
       //  return user info on success
       res = {
@@ -122,6 +164,19 @@ class AuthenticationService {
     box.remove('isLoggedIn');
  // Replace LoginPage with your actual login screen
   }
+
+  bool isValidEmail(String email) {
+    final emailRegex = RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+    return emailRegex.hasMatch(email);
+  }
+  bool isValidPassword(String password) {
+    final passwordRegex = RegExp(
+        '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#\$%\\^&\\*\\(\\)_\\+\\-=\\[\\]\\{\\};:\\\'",<>\\./?\\\\|`~]).{8,}\$'
+    );
+    return passwordRegex.hasMatch(password);
+  }
+
+
 
 
 }

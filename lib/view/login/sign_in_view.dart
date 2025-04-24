@@ -8,6 +8,9 @@ import 'package:untitled/common_widget/secondary_button.dart';
 import 'package:untitled/service/AuthenticationService.dart';
 import 'package:untitled/view/home/home_view.dart';
 import 'package:untitled/view/main_tab/main_tab_view.dart';
+import '../../controller/budgetController.dart';
+import '../../controller/categoryController.dart';
+import '../../controller/home_controller.dart';
 import 'sign_up_view.dart';
 
 class SignInView extends StatefulWidget {
@@ -67,6 +70,25 @@ class _SignInViewState extends State<SignInView> {
       box.write('email', email ?? '');
       box.write('isLoggedIn', true);
 
+      /// Now that login succeeded, fetch all the data
+      final controller = Get.find<HomeController>();
+      final control = Get.find<CategoryController>();
+      final ctrl = Get.find<BudgetController>();// or whatever your controller is
+      await controller.fetchIncome();
+      await controller.fetchExpense();
+      await controller.fetchExpenseStatus();
+      await controller.fetchMonthlyIncomeAndExpense();
+      await controller.loadExpenseStats();
+
+      await ctrl.fetchBudget();
+      await ctrl.getCurrentMonthBudgetStatus();
+
+      await ctrl.loadBudgetStatus();// Optionally fetch budgets when controller initializes
+      await ctrl.loadBudgetsByCategory();
+
+      await control.fetchCategory();
+
+      //print("fetched data");
       Get.snackbar(
         "Success",
         "Sign in completed successfully",
@@ -195,7 +217,7 @@ class _SignInViewState extends State<SignInView> {
                         SecondaryButton(
                           title: "Signup",
                           onPress: () {
-                            Get.to(const SignUpView());
+                            Get.to(()=>const SignUpView());
                           },
                           color: Colors.green,
                         ),

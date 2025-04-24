@@ -6,6 +6,8 @@ import 'package:untitled/common_widget/income_home_row.dart';
 import 'package:untitled/common_widget/segment_button.dart';
 import 'package:untitled/common_widget/up_coming_bill_row.dart';
 import 'package:untitled/controller/home_controller.dart';
+import 'package:untitled/view/add_subscription/update_expense.dart';
+import 'package:untitled/view/add_subscription/update_income_view.dart';
 import 'package:untitled/view/budget/add_budget_screen.dart';
 import 'package:untitled/view/settings/settings_view.dart';
 
@@ -117,7 +119,7 @@ class _HomeViewState extends State<HomeView> {
                             ),
                             child: InkWell(
                               onTap: (){
-                                Get.to(const AddBudgetScreen());
+                                Get.to(()=>const AddBudgetScreen());
                               },
                               child: const Text(
                                 "Manage your budget",
@@ -205,12 +207,43 @@ class _HomeViewState extends State<HomeView> {
                     final income = ctrl.income[index];
                     return IncomeHomeRow(
                       sObj: {
+                        "id": income.id,
                         "name": income.name,
                         "date": income.date,
                         "price": income.amount.toString()
                       },
                       onPressed: () {},
+                      onUpdate: () {
+                        Get.to(() => UpdateIncomeView(id: income.id!));
+                      },
+                      onDelete: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text("Confirm Deletion"),
+                              content: const Text("Are you sure you want to delete this income?"),
+                              actions: [
+                                TextButton(
+                                  child: const Text("Cancel"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close the dialog
+                                  },
+                                ),
+                                TextButton(
+                                  child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close the dialog first
+                                    ctrl.deleteIncome(income.id!); // Call your delete function
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                     );
+
                   },
                 ),
 
@@ -224,12 +257,43 @@ class _HomeViewState extends State<HomeView> {
                     final expense = ctrl.expense[index];
                     return UpcomingBillRow(
                       sObj: {
+                        "id": expense.id,
                         "name": expense.name,
                         "date": expense.date,
                         "price": expense.amount.toString()
                       },
+                      onUpdate: () {
+                        Get.to(() => UpdateExpenseView(expense.id!));
+                      },
+                      onDelete: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text("Confirm Deletion"),
+                              content: const Text("Are you sure you want to delete this expense?"),
+                              actions: [
+                                TextButton(
+                                  child: const Text("Cancel"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close the dialog
+                                  },
+                                ),
+                                TextButton(
+                                  child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close the dialog first
+                                    ctrl.deleteExpense(expense.id!); // Call your delete function
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                       onPressed: () {},
                     );
+
                   },
                 ),
 
@@ -255,7 +319,7 @@ class _HomeViewState extends State<HomeView> {
           children: [
             Text(
               title,
-              style: TextStyle(color: TColor.gray40, fontSize: 10),
+              style: TextStyle(color: TColor.gray60, fontSize: 10),
             ),
             const SizedBox(height: 6),
             Center(
@@ -264,7 +328,7 @@ class _HomeViewState extends State<HomeView> {
                 style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
-                  fontSize: 18,
+                  fontSize: 10,
                 ),
               ),
             ),

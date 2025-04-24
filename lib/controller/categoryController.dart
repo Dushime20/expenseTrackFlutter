@@ -10,7 +10,8 @@ class CategoryController extends GetxController {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
 
-  late CollectionReference categoryCollection;
+  late final CollectionReference categoryCollection = FirebaseFirestore.instance.collection('category');
+
 
   TextEditingController categoryNameCtrl = TextEditingController();
   RxString selectedType = ''.obs;
@@ -18,11 +19,22 @@ class CategoryController extends GetxController {
   RxList<Category> categoryList = <Category>[].obs;
 
   @override
-  Future<void> onInit() async {
+  Future<void> onInit() async{
     super.onInit();
-    categoryCollection = firestore.collection('category');
+
+    final currentUser = auth.currentUser;
+
+    if (currentUser == null) {
+      print("User not logged in. Skipping data fetch.");
+      return;
+    }
+
+
+
+    // Call async method separately
     fetchCategory();
   }
+
 
   Future<void> addCategory() async {
     try {
@@ -49,6 +61,7 @@ class CategoryController extends GetxController {
       await fetchCategory();
     } catch (e) {
       Get.snackbar("Error", "Failed to add category: $e", colorText: TColor.secondary);
+      print(e.toString());
     }
   }
 

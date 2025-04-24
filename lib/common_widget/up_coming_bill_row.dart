@@ -5,15 +5,22 @@ import '../common/color_extension.dart';
 class UpcomingBillRow extends StatelessWidget {
   final Map sObj;
   final VoidCallback onPressed;
+  final VoidCallback onUpdate;
+  final VoidCallback onDelete;
 
-  const UpcomingBillRow({super.key, required this.sObj, required this.onPressed});
+  const UpcomingBillRow({
+    super.key,
+    required this.sObj,
+    required this.onPressed,
+    required this.onUpdate,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
     final DateFormat monthFormat = DateFormat('MMM');
     final DateFormat dayFormat = DateFormat('dd');
 
-    // Parse the date string to DateTime if needed
     final date = sObj["date"] is String
         ? DateTime.parse(sObj["date"])
         : sObj["date"] ?? DateTime.now();
@@ -23,7 +30,7 @@ class UpcomingBillRow extends StatelessWidget {
       child: GestureDetector(
         onTap: onPressed,
         child: Container(
-          padding: const EdgeInsets.only(left: 10, right: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           height: 64,
           decoration: BoxDecoration(
             color: TColor.back,
@@ -81,7 +88,38 @@ class UpcomingBillRow extends StatelessWidget {
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
-              )
+              ),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, color: Colors.grey),
+                onSelected: (value) {
+                  if (value == 'update') {
+                    onUpdate();
+                  } else if (value == 'delete') {
+                    onDelete();
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'update',
+                    child: Row(
+                      children: [
+
+                        Text('Update'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+
+                        Text('Delete'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

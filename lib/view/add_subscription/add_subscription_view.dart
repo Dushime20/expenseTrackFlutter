@@ -63,6 +63,32 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
       selectedCategoryName = null;
     });
   }
+  void handleAdd() async {
+    if (selectedCategoryId == null || selectedCategoryId!.isEmpty) {
+      Get.snackbar("Error", "Please select a category",
+          colorText: TColor.secondary);
+      return;
+    }
+
+    if (homeCtrl.descriptionCtrl.text.trim().isEmpty) {
+      Get.snackbar("Error", "Please enter a description",
+          colorText: TColor.secondary);
+      return;
+    }
+
+    await homeCtrl.addIncome(categoryId: selectedCategoryId!);
+
+    Get.snackbar("Success", "Transaction added successfully",
+        colorText: TColor.line);
+
+    // Reset state
+    setState(() {
+      amountVal = 0.0;
+      homeCtrl.descriptionCtrl.clear();
+      selectedCategoryId = null;
+      selectedCategoryName = null;
+    });
+  }
 
 
   @override
@@ -109,7 +135,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: TColor.gray80,
-                                      fontSize: 40,
+                                      fontSize: 30,
                                       fontWeight: FontWeight.w700),
                                 ),
                               ],
@@ -261,7 +287,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                 child: PrimaryButton(
                   title: "Add new income",
                   onPress: () async {
-                    handleSubmit();
+                    handleAdd();
                     setState(() {
                       amountVal = 0.0;
                     });

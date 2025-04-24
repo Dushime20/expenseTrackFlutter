@@ -173,7 +173,7 @@ class _SignUpViewState extends State<SignUpView> {
                               SecondaryButton(
                                 title: "Sign In",
                                 onPress: () {
-                                  Get.to(const SignInView());
+                                  Get.to(()=> const SignInView());
                                 },
                                 color: Colors
                                     .green, // Matching the login button color

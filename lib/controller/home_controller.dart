@@ -12,8 +12,9 @@ class HomeController extends GetxController{
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
 
-  late CollectionReference expenseCollection;
-  late CollectionReference incomeCollection;
+  late final CollectionReference expenseCollection = firestore.collection("expense");
+  late final CollectionReference incomeCollection = firestore.collection("income");
+
   final TextEditingController amountCtrl = TextEditingController();
   TextEditingController descriptionCtrl = TextEditingController();
 
@@ -32,17 +33,31 @@ class HomeController extends GetxController{
 
   @override
   Future<void> onInit() async {
-    // TODO: implement onInit
-    expenseCollection = firestore.collection("expense");
-    incomeCollection = firestore.collection("income");
+    super.onInit();
+
+
+
+    // Check if user is logged in
+    final currentUser = auth.currentUser;
+
+    if (currentUser == null) {
+      print("User not logged in. Skipping data fetch.");
+      return;
+    }
+
+    print("Current user info:");
+    print("UID: ${currentUser.uid}");
+    print("Email: ${currentUser.email}");
+
+
+    // Fetch data only if user is logged in
     await fetchIncome();
-    await  fetchExpense();
+    await fetchExpense();
     await fetchExpenseStatus();
     await fetchMonthlyIncomeAndExpense();
     await loadExpenseStats();
-
-    super.onInit();
   }
+
 
   //expense
   Future<void> addExpenses({required String categoryId}) async {
@@ -64,6 +79,8 @@ class HomeController extends GetxController{
 
       await doc.set(expenseJson);
 
+      print("category added");
+
       Get.snackbar("Success", "Expense added successfully", colorText: TColor.line);
       setValueDefault();
       await fetchExpense();
@@ -75,16 +92,16 @@ class HomeController extends GetxController{
 
   //update expense
   Future<void> updateExpense({
-    required String incomeId,
+    required String expenseId,
     required String categoryId,
     required String newName,
     required double newAmount,
   }) async {
     try {
-      DocumentReference doc = expenseCollection.doc(incomeId);
+      DocumentReference doc = expenseCollection.doc(expenseId);
 
       Expense updatedExpense = Expense(
-        id: incomeId,
+        id: expenseId,
         name: newName,
         amount: newAmount,
         date: DateTime.now(), // Optionally keep original date if needed
@@ -96,9 +113,9 @@ class HomeController extends GetxController{
 
       await doc.update(expenseJson); // update instead of set
 
-      Get.snackbar("Success", "Income updated successfully", colorText: TColor.line);
+      Get.snackbar("Success", "expense updated successfully", colorText: TColor.line);
       setValueDefault(); // Optional: Reset form values
-      await fetchIncome(); // Refresh income list
+      await fetchExpense(); // Refresh income list
     } catch (e) {
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
       print(e);
@@ -119,6 +136,9 @@ class HomeController extends GetxController{
   //fetch expense status low,high and total
   Future<Map<String, dynamic>> fetchExpenseStatus() async {
     try {
+
+
+
       final userId = auth.currentUser!.uid;
 
       QuerySnapshot snapshot = await expenseCollection
@@ -166,31 +186,50 @@ class HomeController extends GetxController{
 
   fetchExpense() async {
     try {
-      final String uid = auth.currentUser!.uid;
+      final currentUser = auth.currentUser;
+      if (currentUser == null) {
+        print("User not logged in");
+        return;
+      }
+
+      final uid = currentUser.uid;
       QuerySnapshot expenseSnapshot = await expenseCollection
           .where("userId", isEqualTo: uid)
           .get();
 
+      print("Current user info:");
+      print("UID: ${currentUser.uid}");
+      print("Email: ${currentUser.email}");
+
+      // Print raw docs with userId before mapping
+      for (var doc in expenseSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        print("Raw Expense Doc => ID: ${doc.id}, UserId: ${data['userId']}, Name: ${data['name']}, Amount: ${data['amount']}, Date: ${data['date']}");
+      }
+
       final List<Expense> retrievedExpense = expenseSnapshot.docs.map(
-              (doc) => Expense.fromJson(doc.data() as Map<String, dynamic>)
+            (doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          data['id'] = doc.id;
+          return Expense.fromJson(data);
+        },
       ).toList();
 
       expense.clear();
       expense.assignAll(retrievedExpense);
 
-      // Print each expense nicely
       for (var exp in expense) {
-        print("Fetched Expense => ID: ${exp.id}, Name: ${exp.name}, Amount: ${exp.amount}, Date: ${exp.date}");
+        print("Mapped Expense => ID: ${exp.id}, Name: ${exp.name}, Amount: ${exp.amount}, Date: ${exp.date}");
       }
+
 
       Get.snackbar("Success", "Fetched expenses successfully", colorText: TColor.line);
     } catch (e) {
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
       print("Error fetching expenses: $e");
-    }finally{
+    } finally {
       update();
     }
-
   }
 
   //totalMonthly expense
@@ -241,11 +280,12 @@ class HomeController extends GetxController{
   //income
   addIncome({required String categoryId}) async{
     try{
+      final double parsedAmount = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
       DocumentReference doc = incomeCollection.doc();
       Income income= Income(
         id: doc.id,
         name: descriptionCtrl.text,
-        amount: amountVal,
+        amount: parsedAmount,
         date: DateTime.now(),
         userId: auth.currentUser!.uid,
         categoryId: categoryId, // Make sure your Expense model has this field
@@ -333,7 +373,13 @@ class HomeController extends GetxController{
 
   fetchIncome() async {
     try {
-      final String uid = auth.currentUser!.uid;
+      final currentUser = auth.currentUser;
+      if (currentUser == null) {
+        print("User not logged in");
+        return;
+      }
+
+      final uid = currentUser.uid;
       QuerySnapshot incomeSnapshot = await incomeCollection
           .where("userId", isEqualTo: uid)
           .get();

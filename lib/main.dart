@@ -1,7 +1,9 @@
-import 'package:device_preview/device_preview.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/controller/budgetController.dart';
 import 'package:untitled/controller/categoryController.dart';
@@ -18,6 +20,12 @@ void main() async{
 
   WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp(options: firebaseOptions);
+
+  final box = GetStorage();
+  await box.erase();
+  // Log out the user to ensure no user is logged in when the app starts
+  await FirebaseAuth.instance.signOut();
+
   //register controller
    Get.put(HomeController());
    Get.put(CategoryController());

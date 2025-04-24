@@ -12,9 +12,9 @@ class BudgetController extends GetxController {
   final homeController = Get.find<HomeController>();
 
 
-  late CollectionReference budgetCollection;
-  late CollectionReference expenseCollection;
-  late CollectionReference categoryCollection;
+  late final CollectionReference budgetCollection = firestore.collection('budget');
+  late final CollectionReference expenseCollection =firestore.collection('expense');
+  late final CollectionReference categoryCollection = firestore.collection('category');
 
   final TextEditingController amountCtrl = TextEditingController();
 
@@ -32,9 +32,16 @@ class BudgetController extends GetxController {
   @override
   Future<void> onInit() async {
     super.onInit();
-    expenseCollection =firestore.collection('expense');
-    budgetCollection = firestore.collection('budget');
-    categoryCollection = firestore.collection('category');
+
+    // Check if user is logged in
+    final currentUser = auth.currentUser;
+
+    if (currentUser == null) {
+      print("User not logged in. Skipping data fetch.");
+      return;
+    }
+
+
     fetchBudget();
     getCurrentMonthBudgetStatus();
 

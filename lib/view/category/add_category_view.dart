@@ -143,6 +143,7 @@ class AddCategoryView extends StatelessWidget {
                         ctrl.selectedType.value.isEmpty) {
                       Get.snackbar("Error", "Please enter all fields",
                           colorText: TColor.secondary);
+
                       return;
                     }
 

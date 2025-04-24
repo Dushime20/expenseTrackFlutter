@@ -126,7 +126,7 @@ class _MainTabViewState extends State<MainTabView> {
                     ),
                     InkWell(
                       onTap: () {
-                        Get.to(const AddSubScriptionView());
+                        Get.to(()=>const AddSubScriptionView());
                       },
                       child: Container(
                         margin: const EdgeInsets.all(20),
@@ -144,7 +144,8 @@ class _MainTabViewState extends State<MainTabView> {
                           ),
                         ),
                       ),
-                    )
+                    ),
+                    SizedBox(height: 8,),
                   ],
                 ),
               )
