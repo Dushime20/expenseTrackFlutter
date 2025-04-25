@@ -4,6 +4,7 @@ import 'package:get/get_state_manager/src/simple/get_state.dart';
 
 import '../../common/color_extension.dart';
 import '../../common_widget/primary_button.dart';
+import '../../controller/app_initialization_controller.dart';
 import '../../controller/categoryController.dart';
 import '../../controller/home_controller.dart';
 
@@ -78,6 +79,11 @@ class _UpdateExpenseState extends State<UpdateExpenseView> {
 
   @override
   Widget build(BuildContext context) {
+
+    // Ensure initialization happens when the screen is built
+    final appInitController = Get.put(AppInitializationController());
+    appInitController.initialize();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Update Expense"),

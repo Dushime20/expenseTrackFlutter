@@ -8,9 +8,8 @@ import 'package:untitled/common_widget/secondary_button.dart';
 import 'package:untitled/service/AuthenticationService.dart';
 import 'package:untitled/view/home/home_view.dart';
 import 'package:untitled/view/main_tab/main_tab_view.dart';
-import '../../controller/budgetController.dart';
-import '../../controller/categoryController.dart';
-import '../../controller/home_controller.dart';
+import '../../controller/app_initialization_controller.dart';
+
 import 'sign_up_view.dart';
 
 class SignInView extends StatefulWidget {
@@ -71,22 +70,8 @@ class _SignInViewState extends State<SignInView> {
       box.write('isLoggedIn', true);
 
       /// Now that login succeeded, fetch all the data
-      final controller = Get.find<HomeController>();
-      final control = Get.find<CategoryController>();
-      final ctrl = Get.find<BudgetController>();// or whatever your controller is
-      await controller.fetchIncome();
-      await controller.fetchExpense();
-      await controller.fetchExpenseStatus();
-      await controller.fetchMonthlyIncomeAndExpense();
-      await controller.loadExpenseStats();
-
-      await ctrl.fetchBudget();
-      await ctrl.getCurrentMonthBudgetStatus();
-
-      await ctrl.loadBudgetStatus();// Optionally fetch budgets when controller initializes
-      await ctrl.loadBudgetsByCategory();
-
-      await control.fetchCategory();
+      final appInitController = Get.put(AppInitializationController());
+      appInitController.initialize();
 
       //print("fetched data");
       Get.snackbar(
@@ -118,7 +103,9 @@ class _SignInViewState extends State<SignInView> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SafeArea(
         child: Column(
           children: [
             Expanded(

@@ -1,21 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:untitled/report/expense_report.dart';
+import 'package:untitled/report/income_report.dart';
 import 'package:untitled/service/AuthenticationService.dart';
+import 'package:untitled/view/login/edit_profile.dart';
 import 'package:untitled/view/login/sign_in_view.dart';
 
 
 import '../../common/color_extension.dart';
 import '../../common_widget/icon_item_row.dart';
-
+import '../../report/budget_report.dart';
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
 
   @override
   State<SettingsView> createState() => _SettingsViewState();
 }
-
 class _SettingsViewState extends State<SettingsView> {
   bool isActive = false;
+  final AuthenticationService authService = AuthenticationService();
+
+  String userName = '';
+  String userEmail = '';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCurrentUser();
+  }
+
+  Future<void> fetchCurrentUser() async {
+    final userData = await authService.getCurrentUserData();
+    print("fetched user, ${userData}");
+    if (userData != null) {
+      setState(() {
+        userName = userData['name'] ?? 'No Name';
+        userEmail = userData['email'] ?? 'No Email';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,12 +71,9 @@ class _SettingsViewState extends State<SettingsView> {
                     )
                   ],
                 ),
-
               ],
             ),
-            const SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -64,33 +84,31 @@ class _SettingsViewState extends State<SettingsView> {
                 )
               ],
             ),
-            const SizedBox(
-              height: 8,
-            ),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Code For Any",
+                  userName,
                   style: TextStyle(
-                      color: TColor.gray60,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700),
+                    color: TColor.gray60,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
                 )
               ],
             ),
-            const SizedBox(
-              height: 4,
-            ),
+            const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "codeforany@gmail.com",
+                  userEmail,
                   style: TextStyle(
-                      color: TColor.gray60,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500),
+                    color: TColor.gray60,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 )
               ],
             ),
@@ -99,7 +117,9 @@ class _SettingsViewState extends State<SettingsView> {
             ),
             InkWell(
               borderRadius: BorderRadius.circular(15),
-              onTap: () {},
+              onTap: () {
+                Get.to(()=> EditProfileView());
+              },
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
@@ -185,21 +205,30 @@ class _SettingsViewState extends State<SettingsView> {
                         IconItemRow(
                           title: "Expense Report",
 
-                          value: "Date",
-                          onTap: (){},
+                          value: "save",
+                          onTap: () async{
+                            final generator = ExpensePdfGenerator();
+                            await generator.generateAndSaveExpenseReport();
+                          },
                         ),
 
                         IconItemRow(
                           title: "Income Report",
 
-                          value: "Average",
-                          onTap: (){},
+                          value: "save",
+                          onTap: () async{
+                            final generator = IncomePdfGenerator();
+                            await generator.generateAndSaveIncomeReport();
+                          },
                         ),
                         IconItemRow(
                           title: "Budget Report",
 
-                          value: "Average",
-                          onTap: (){},
+                          value: "save",
+                          onTap: () async{
+                            final generator = BudgetPdfGenerator();
+                            await generator.generateAndSaveBudgetReport();
+                          },
                         ),
 
                         

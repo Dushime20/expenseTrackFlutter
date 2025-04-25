@@ -6,6 +6,8 @@ import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/controller/budgetController.dart';
 import 'package:untitled/controller/categoryController.dart';
 
+import '../../controller/app_initialization_controller.dart';
+
 class AddBudgetScreen extends StatefulWidget {
   const AddBudgetScreen({super.key});
 
@@ -77,6 +79,11 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    // Ensure initialization happens when the screen is built
+    final appInitController = Get.put(AppInitializationController());
+    appInitController.initialize();
+
     return GetBuilder<BudgetController>(builder: (_) {
       return Scaffold(
         backgroundColor: TColor.back,

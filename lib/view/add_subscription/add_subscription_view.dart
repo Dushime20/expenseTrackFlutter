@@ -8,6 +8,7 @@ import 'package:untitled/controller/categoryController.dart';
 import 'package:untitled/controller/home_controller.dart';
 
 import '../../common_widget/image_button.dart';
+import '../../controller/app_initialization_controller.dart';
 
 class AddSubScriptionView extends StatefulWidget {
   const AddSubScriptionView({super.key});
@@ -93,6 +94,11 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
 
   @override
   Widget build(BuildContext context) {
+
+    // Ensure initialization happens when the screen is built
+    final appInitController = Get.put(AppInitializationController());
+    appInitController.initialize();
+
     var media = MediaQuery.sizeOf(context);
     return GetBuilder<HomeController>(builder: (_) {
       return Scaffold(

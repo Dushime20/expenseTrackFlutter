@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:untitled/common/color_extension.dart';
+import '../../controller/categoryController.dart';
+
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -9,31 +12,36 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final List<String> _allItems = [
-    "Apple",
-    "Banana",
-    "Cherry",
-    "Date",
-    "Grapes",
-    "Mango",
-    "Orange",
-    "Pineapple",
-    "Strawberry",
-    "Watermelon"
-  ];
+  final CategoryController categoryController = Get.find<CategoryController>(); // Get the CategoryController
 
-  List<String> _filteredItems = [];
+  List<String> _allItems = []; // To hold all categories
+  List<String> _filteredItems = []; // To hold filtered categories
 
   @override
   void initState() {
     super.initState();
-    _filteredItems = _allItems; // Initially show all items
+    _loadCategories();
   }
 
+  Future<void> _loadCategories() async {
+    // Wait for the fetch operation to complete
+    await categoryController.fetchCategory();
+
+    // After fetching is complete, get categories from the controller's categoryList
+    setState(() {
+      // Convert Category objects to strings, handling null values
+      _allItems = categoryController.categoryList
+          .map((category) => category.name ?? "Unnamed Category")
+          .toList();
+      _filteredItems = _allItems;
+    });
+  }
+
+  // Filter categories based on the search query
   void _filterSearchResults(String query) {
     setState(() {
       _filteredItems = _allItems
-          .where((item) => item.toLowerCase().contains(query.toLowerCase()))
+          .where((category) => category.toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
   }
@@ -42,42 +50,44 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: TColor.back,
-      // appBar: AppBar(title: const Text("Search")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             const SizedBox(height: 40,),
 
-
-
+            // Search title
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Search",
+                  "Search category",
                   style: TextStyle(color: TColor.gray80, fontSize: 16),
                 )
               ],
             ),
             const SizedBox(height: 40,),
+
+            // Search bar
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey, width: 1), // Custom border
-                color: Colors.white, // Background color (optional)
+                border: Border.all(color: Colors.grey, width: 1),
+                color: Colors.white,
               ),
               child: TextField(
                 onChanged: _filterSearchResults,
                 decoration: const InputDecoration(
                   hintText: "Search...",
                   prefixIcon: Icon(Icons.search),
-                  border: InputBorder.none, // No default border
+                  border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 ),
               ),
             ),
             const SizedBox(height: 10),
+
+            // Display the filtered categories
             Expanded(
               child: _filteredItems.isNotEmpty
                   ? ListView.builder(

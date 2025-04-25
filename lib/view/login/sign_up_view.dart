@@ -95,7 +95,9 @@ class _SignUpViewState extends State<SignUpView> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SafeArea(
         child: Column(
           children: [
             Expanded(

@@ -223,7 +223,7 @@ class HomeController extends GetxController{
       }
 
 
-      Get.snackbar("Success", "Fetched expenses successfully", colorText: TColor.line);
+     // Get.snackbar("Success", "Fetched expenses successfully", colorText: TColor.line);
     } catch (e) {
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
       print("Error fetching expenses: $e");
@@ -298,7 +298,7 @@ class HomeController extends GetxController{
       doc.set(incomeJson);
 
 
-      Get.snackbar("Success", "income added successfully", colorText: TColor.line);
+      //Get.snackbar("Success", "income added successfully", colorText: TColor.line);
       setValueDefault();
       await  fetchIncome();
     }catch(e){
@@ -396,7 +396,7 @@ class HomeController extends GetxController{
         print("Fetched Expense => ID: ${inc.id}, Name: ${inc.name}, Amount: ${inc.amount}, Date: ${inc.date}");
       }
 
-      Get.snackbar("Success", "Fetched income successfully", colorText: TColor.line);
+      //Get.snackbar("Success", "Fetched income successfully", colorText: TColor.line);
     } catch (e) {
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
       print("Error fetching income: $e");

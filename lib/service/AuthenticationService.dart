@@ -87,6 +87,119 @@ class AuthenticationService {
   }
 
 
+  Future<Map<String, dynamic>?> getCurrentUserData() async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        return null; // Not logged in
+      }
+
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      if (doc.exists) {
+        return doc.data();
+      }
+    } catch (e) {
+      print("Error getting current user data: $e");
+    }
+
+    return null;
+  }
+
+
+  Future<bool> updateCurrentUserData({
+    String? name,
+    String? phone,
+    String? email,
+    String? currentPassword,
+    String? newPassword,
+  }) async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) return false;
+
+      final Map<String, dynamic> updatedData = {};
+
+      // Update name and phone if provided
+      if (name != null) updatedData['name'] = name;
+      if (phone != null) updatedData['phone'] = phone;
+
+      // Update email if provided and different from current email
+      if (email != null && email != currentUser.email) {
+        if (currentPassword == null || currentPassword.isEmpty) {
+          Get.snackbar("Authentication Required", "Please enter your current password to change your email.");
+          return false;
+        }
+
+        // Reauthenticate with current email and password
+        final credential = EmailAuthProvider.credential(
+          email: currentUser.email!,
+          password: currentPassword,
+        );
+
+        await currentUser.reauthenticateWithCredential(credential);
+
+        // Update the email
+        await currentUser.updateEmail(email);
+        updatedData['email'] = email;
+      }
+
+      // Update password if newPassword is provided
+      if (newPassword != null && newPassword.isNotEmpty) {
+        if (currentPassword == null || currentPassword.isEmpty) {
+          Get.snackbar("Authentication Required", "Please enter your current password to change your password.");
+          return false;
+        }
+
+        // Reauthenticate with current email and password
+        final credential = EmailAuthProvider.credential(
+          email: currentUser.email!,
+          password: currentPassword,
+        );
+
+        await currentUser.reauthenticateWithCredential(credential);
+
+        // Update the password
+        await currentUser.updatePassword(newPassword);
+      }
+
+      // Update Firestore user profile if there is any change
+      if (updatedData.isNotEmpty) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .update(updatedData);
+      }
+
+      await getCurrentUserData();
+
+      return true;
+    } on FirebaseAuthException catch (e) {
+      print("get FirebaseAuthException: Code=${e.code}, Message=${e.message}");
+      if (e.code == 'requires-recent-login') {
+        Get.snackbar("Auth Error", "Please log in again to update your email or password.");
+      } else if (e.code == 'wrong-password') {
+        Get.snackbar("Auth Error", "Incorrect password. Please try again.");
+      } else {
+        print("auth error : message=${e.message}");
+        Get.snackbar("Auth Error", e.message ?? "An unknown error occurred.");
+      }
+      return false;
+    } catch (e, stackTrace) {
+      print("Unexpected error updating user data: $e");
+      print("StackTrace: $stackTrace");
+      Get.snackbar("Error", e.toString(), colorText: TColor.secondary0);
+      return false;
+    }
+  }
+
+
+
+
+
 
   Future<Map<String, dynamic>> loginUser({
     required String email,
