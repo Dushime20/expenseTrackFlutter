@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/controller/budgetController.dart';
-import 'package:untitled/controller/categoryController.dart';
+
 import 'package:untitled/controller/home_controller.dart';
 
 class AuthenticationService {
@@ -225,23 +225,7 @@ class AuthenticationService {
       final userEmail = userCredential.user?.email;
 
 
-      /// Now that login succeeded, fetch all the data
-      final controller = Get.find<HomeController>();
-      final control = Get.find<CategoryController>();
-      final ctrl = Get.find<BudgetController>();// or whatever your controller is
-      await controller.fetchIncome();
-      await controller.fetchExpense();
-      await controller.fetchExpenseStatus();
-      await controller.fetchMonthlyIncomeAndExpense();
-      await controller.loadExpenseStats();
 
-       await ctrl.fetchBudget();
-       await ctrl.getCurrentMonthBudgetStatus();
-
-       await ctrl.loadBudgetStatus();// Optionally fetch budgets when controller initializes
-       await ctrl.loadBudgetsByCategory();
-
-      await control.fetchCategory();
 
       //  return user info on success
       res = {

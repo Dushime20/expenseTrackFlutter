@@ -134,7 +134,7 @@ class _SignUpViewState extends State<SignUpView> {
                     _buildTextField("Email", "Enter your email", textEmail,
                         TextInputType.emailAddress),
                     const SizedBox(height: 20),
-                    _buildTextField("Password", "Enter your password",
+                    _buildTextField("Password", "eg:Hello@2024",
                         textPassword, TextInputType.visiblePassword,
                         obscureText: true),
                     const SizedBox(height: 20),

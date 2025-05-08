@@ -11,9 +11,6 @@ class Budget {
   @JsonKey(name: "amount")
   final double? amount;
 
-  @JsonKey(name: "categoryId")
-  final String? categoryId;
-
   @JsonKey(name: "startDate")
   final DateTime? startDate;
 
@@ -23,23 +20,23 @@ class Budget {
   @JsonKey(name: "userId")
   final String? userId;
 
-  Budget({
-    required this.id,
-    required this.amount,
-    required this.startDate,
-    required this.endDate,
-    required this.categoryId,
-    required this.userId,
-  });
+
+  Budget(
+      this.id,
+      this.amount,
+      this.startDate,
+      this.endDate,
+      this.userId,
+      );
 
   factory Budget.fromJson(Map<String, dynamic> json) {
     return Budget(
-      id: json['id'] as String?,
-      amount: (json['amount'] as num?)?.toDouble(),
-      startDate: (json['startDate'] as Timestamp?)?.toDate(),
-      endDate: (json['endDate'] as Timestamp?)?.toDate(),
-      categoryId: json['categoryId'] as String?,
-      userId: json['userId'] as String?,
+      json['id'] as String?,
+      (json['amount'] as num?)?.toDouble(),
+      (json['startDate'] as Timestamp?)?.toDate(),
+      (json['endDate'] as Timestamp?)?.toDate(),
+      json['userId'] as String?,
+
     );
   }
 
@@ -49,8 +46,8 @@ class Budget {
       'amount': amount,
       'startDate': startDate,
       'endDate': endDate,
-      'categoryId': categoryId,
       'userId': userId,
+
     };
   }
 }

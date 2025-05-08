@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:untitled/common/color_extension.dart';
@@ -5,11 +6,15 @@ import 'package:untitled/common_widget/custom_arc_painter.dart';
 import 'package:untitled/common_widget/income_home_row.dart';
 import 'package:untitled/common_widget/segment_button.dart';
 import 'package:untitled/common_widget/up_coming_bill_row.dart';
+import 'package:untitled/controller/expense_controller.dart';
 import 'package:untitled/controller/home_controller.dart';
+import 'package:untitled/controller/spending_controller.dart';
 import 'package:untitled/view/add_subscription/update_expense.dart';
 import 'package:untitled/view/add_subscription/update_income_view.dart';
-import 'package:untitled/view/budget/add_budget_screen.dart';
+
 import 'package:untitled/view/settings/settings_view.dart';
+
+
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -20,6 +25,10 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   bool isIncome = true;
+  final SpendingController spendingCtrl = Get.put(SpendingController());
+
+
+
 
 
 
@@ -52,7 +61,7 @@ class _HomeViewState extends State<HomeView> {
                       children: [
                         Container(
                           padding: EdgeInsets.only(bottom: media.width * 0.01),
-                          width: media.width * 0.6,
+                          width: media.width * 0.7,
                           height: media.width * 0.6,
                           child: CustomPaint(
                             painter: CustomArcPainter(end: 220),
@@ -90,47 +99,38 @@ class _HomeViewState extends State<HomeView> {
                       children: [
                         const SizedBox(height: 10),
                         Obx(() => Text(
-                          "${ctrl.monthlyExpense.value.toStringAsFixed(0)} Frw",
+                          "${spendingCtrl.totalAmountSpending.value.toStringAsFixed(2)} Frw",
                           style: const TextStyle(
                             color: Colors.black,
-                            fontSize: 36,
+                            fontSize: 20,
                             fontWeight: FontWeight.w700,
                           ),
                         )),
                         const SizedBox(height: 6),
                         Text(
-                          "This month Expenses",
+                          "This month subCategory Expense",
                           style: TextStyle(
                             color: TColor.gray60,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        InkWell(
-                          onTap: () {},
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: TColor.border),
-                              color: TColor.back,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: InkWell(
-                              onTap: (){
-                                Get.to(()=>const AddBudgetScreen());
-                              },
-                              child: const Text(
-                                "Manage your budget",
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-
-                              ),
-                            ),
+                        const SizedBox(height: 10),
+                        Obx(() => Text(
+                          "${ctrl.totalIncome.value.toStringAsFixed(0)} Frw",
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        )),
+                        const SizedBox(height: 6),
+                        Text(
+                          "This month income",
+                          style: TextStyle(
+                            color: TColor.gray60,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -145,11 +145,11 @@ class _HomeViewState extends State<HomeView> {
                       right: 20,
                       child: Row(
                         children: [
-                          Obx(() => _buildStatCard("Active Expense",ctrl.totalExpense.value.toString())),
+                          Obx(() => _buildStatCard("Active subCategory",spendingCtrl.totalSpendingCount.value.toString())),
                           const SizedBox(width: 8),
-                          Obx(() => _buildStatCard("Low Expense", "${ctrl.lowestExpense.value.toStringAsFixed(2)} Frw")),
+                          Obx(() => _buildStatCard("Low subCategory", "${spendingCtrl.lowestSpending.value.toStringAsFixed(2)} Frw")),
                           const SizedBox(width: 8),
-                          Obx(() => _buildStatCard("High Expense", "${ctrl.highestExpense.value.toStringAsFixed(2)} Frw")),
+                          Obx(() => _buildStatCard("High subCategory", "${spendingCtrl.highestSpending.value.toStringAsFixed(2)} Frw")),
                         ],
                       ),
                     ),
@@ -183,7 +183,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     Expanded(
                       child: SegmentButton(
-                        title: 'Expenses',
+                        title: 'subCategory',
                         onPress: () {
                           setState(() {
                             isIncome = true;
@@ -198,104 +198,125 @@ class _HomeViewState extends State<HomeView> {
 
               // Conditional content
               if (!isIncome)
-                ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: ctrl.income.length,
-                  itemBuilder: (context, index) {
-                    final income = ctrl.income[index];
-                    return IncomeHomeRow(
-                      sObj: {
-                        "id": income.id,
-                        "name": income.name,
-                        "date": income.date,
-                        "price": income.amount.toString()
-                      },
-                      onPressed: () {},
-                      onUpdate: () {
-                        Get.to(() => UpdateIncomeView(id: income.id!));
-                      },
-                      onDelete: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text("Confirm Deletion"),
-                              content: const Text("Are you sure you want to delete this income?"),
-                              actions: [
-                                TextButton(
-                                  child: const Text("Cancel"),
-                                  onPressed: () {
-                                    Navigator.of(context).pop(); // Close the dialog
-                                  },
-                                ),
-                                TextButton(
-                                  child: const Text("Delete", style: TextStyle(color: Colors.red)),
-                                  onPressed: () {
-                                    Navigator.of(context).pop(); // Close the dialog first
-                                    ctrl.deleteIncome(income.id!); // Call your delete function
-                                  },
-                                ),
-                              ],
-                            );
-                          },
+          Obx(() {
+            if (ctrl.income.isEmpty) {
+              return const Center(child: Text(
+                  "No Income available this Month"));
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: ctrl.income.length,
+              itemBuilder: (context, index) {
+
+                final income = ctrl.income[index];
+
+
+                return IncomeHomeRow(
+                  sObj: {
+                    "id": income.id,
+                    "name": income.name,
+                    "date": income.date,
+                    "price": income.amount.toString()
+                  },
+                  onPressed: () {},
+                  onUpdate: () {
+                    Get.to(() => UpdateIncomeView(id: income.id!));
+                  },
+                  onDelete: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text("Confirm Deletion"),
+                          content: const Text(
+                              "Are you sure you want to delete this income?"),
+                          actions: [
+                            TextButton(
+                              child: const Text("Cancel"),
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Close the dialog
+                              },
+                            ),
+                            TextButton(
+                              child: const Text("Delete",
+                                  style: TextStyle(color: Colors.red)),
+                              onPressed: () {
+                                Navigator
+                                    .of(context)
+                                    .pop(); // Close the dialog first
+                                ctrl.deleteIncome(
+                                    income.id!); // Call your delete function
+                              },
+                            ),
+                          ],
                         );
                       },
                     );
-
                   },
-                ),
+                );
+              },
+            );
+
+          }),
 
               if (isIncome)
-                ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: ctrl.expense.length,
-                  itemBuilder: (context, index) {
-                    final expense = ctrl.expense[index];
-                    return UpcomingBillRow(
-                      sObj: {
-                        "id": expense.id,
-                        "name": expense.name,
-                        "date": expense.date,
-                        "price": expense.amount.toString()
-                      },
-                      onUpdate: () {
-                        Get.to(() => UpdateExpenseView(expense.id!));
-                      },
-                      onDelete: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text("Confirm Deletion"),
-                              content: const Text("Are you sure you want to delete this expense?"),
-                              actions: [
-                                TextButton(
-                                  child: const Text("Cancel"),
-                                  onPressed: () {
-                                    Navigator.of(context).pop(); // Close the dialog
-                                  },
-                                ),
-                                TextButton(
-                                  child: const Text("Delete", style: TextStyle(color: Colors.red)),
-                                  onPressed: () {
-                                    Navigator.of(context).pop(); // Close the dialog first
-                                    ctrl.deleteExpense(expense.id!); // Call your delete function
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                      onPressed: () {},
-                    );
 
-                  },
-                ),
+                Obx(() {
+                  if (spendingCtrl.spending.isEmpty) {
+                    return const Center(child: Text("No Spending available this Month"));
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: spendingCtrl.spending.length,
+                    itemBuilder: (context, index) {
+                      final spent = spendingCtrl.spending[index];
+                      return UpcomingBillRow(
+                        sObj: {
+                          "id": spent['id'],
+                          "name": spent['name'],
+                          "date": (spent['date'] as Timestamp).toDate(),
+                          "price": spent['amount'].toString()
+                        },
+                        onUpdate: () {
+                           Get.to(() => UpdateExpenseView(spent['id']));
+                        },
+                        onDelete: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text("Confirm Deletion"),
+                                content: const Text("Are you sure you want to delete this expense?"),
+                                actions: [
+                                  TextButton(
+                                    child: const Text("Cancel"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      spendingCtrl.deleteSpending(spent['id']);
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        onPressed: () {},
+                      );
+                    },
+                  );
+                }),
+
 
               const SizedBox(height: 80),
             ],

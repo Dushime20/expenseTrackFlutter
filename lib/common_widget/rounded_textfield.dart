@@ -30,7 +30,7 @@ class RoundedTextField extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               border: Border.all(color: TColor.gray70),
-              color: TColor.gray60.withOpacity(0.05),
+              color: TColor.white,
               borderRadius: BorderRadius.circular(15),
             ),
             child: Padding(

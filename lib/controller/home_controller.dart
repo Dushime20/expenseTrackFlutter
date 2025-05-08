@@ -22,6 +22,9 @@ class HomeController extends GetxController{
   var monthlyExpense = 0.0.obs;
   var monthlyIncome = 0.0.obs;
 
+  var totalIncome = 0.0.obs;
+
+
   List<Expense> expense = [];
 
   List<Income> income =[];
@@ -36,285 +39,53 @@ class HomeController extends GetxController{
     super.onInit();
 
 
-
-    // Check if user is logged in
-    final currentUser = auth.currentUser;
-
-    if (currentUser == null) {
-      print("User not logged in. Skipping data fetch.");
-      return;
-    }
-
-    print("Current user info:");
-    print("UID: ${currentUser.uid}");
-    print("Email: ${currentUser.email}");
+   await calculateMonthlyIncome();
 
 
-    // Fetch data only if user is logged in
-    await fetchIncome();
-    await fetchExpense();
-    await fetchExpenseStatus();
-    await fetchMonthlyIncomeAndExpense();
-    await loadExpenseStats();
+
   }
 
 
-  //expense
-  Future<void> addExpenses({required String categoryId}) async {
-    try {
-      DocumentReference doc = expenseCollection.doc();
 
+
+
+
+  Future<bool> addIncome() async {
+    try {
       final double parsedAmount = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
 
-      Expense expense = Expense(
-        id: doc.id,
-        name: descriptionCtrl.text,
-        amount: parsedAmount,
-        date: DateTime.now(),
-        userId: auth.currentUser!.uid,
-        categoryId: categoryId, // Make sure your Expense model has this field
-      );
-
-      final expenseJson = expense.toJson();
-
-      await doc.set(expenseJson);
-
-      print("category added");
-
-      Get.snackbar("Success", "Expense added successfully", colorText: TColor.line);
-      setValueDefault();
-      await fetchExpense();
-    } catch (e) {
-      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
-      print(e);
-    }
-  }
-
-  //update expense
-  Future<void> updateExpense({
-    required String expenseId,
-    required String categoryId,
-    required String newName,
-    required double newAmount,
-  }) async {
-    try {
-      DocumentReference doc = expenseCollection.doc(expenseId);
-
-      Expense updatedExpense = Expense(
-        id: expenseId,
-        name: newName,
-        amount: newAmount,
-        date: DateTime.now(), // Optionally keep original date if needed
-        userId: auth.currentUser!.uid,
-        categoryId: categoryId,
-      );
-
-      final expenseJson = updatedExpense.toJson();
-
-      await doc.update(expenseJson); // update instead of set
-
-      Get.snackbar("Success", "expense updated successfully", colorText: TColor.line);
-      setValueDefault(); // Optional: Reset form values
-      await fetchExpense(); // Refresh income list
-    } catch (e) {
-      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
-      print(e);
-    }
-  }
-  RxDouble totalExpense = RxDouble(0.0);
-  RxDouble highestExpense = RxDouble(0.0);
-  RxDouble lowestExpense = RxDouble(0.0);
-
-  Future<void> loadExpenseStats() async {
-    final stats = await fetchExpenseStatus();
-    totalExpense.value = stats['total']??0.0;
-    highestExpense.value = stats['highest'] ?? 0.0;
-    lowestExpense.value = stats['lowest'] ?? 0.0;
-    update();
-  }
-
-  //fetch expense status low,high and total
-  Future<Map<String, dynamic>> fetchExpenseStatus() async {
-    try {
-
-
-
-      final userId = auth.currentUser!.uid;
-
-      QuerySnapshot snapshot = await expenseCollection
-          .where('userId', isEqualTo: userId)
-          .get();
-
-      if (snapshot.docs.isEmpty) {
-        print("No expenses found.");
-        return {
-          "total": 0.0,   // total count of expenses (number of documents)
-          "highest": 0.0,
-          "lowest": 0.0,
-        };
-      }
-
-      List<double> amounts = snapshot.docs
-          .map((doc) => (doc['amount'] as num).toDouble())
-          .toList();
-
-      double highest = amounts.reduce((a, b) => a > b ? a : b);
-      double lowest = amounts.reduce((a, b) => a < b ? a : b);
-
-      print("Highest: $highest");
-      print("Lowest: $lowest");
-      return {
-        "total": snapshot.docs.length.toDouble(), // total count as a double
-        "highest": highest,
-        "lowest": lowest,
-      };
-    } catch (e) {
-      print("Error fetching expenses: $e");
-      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
-      return {
-        "total": 0.0,
-        "highest": 0.0,
-        "lowest": 0.0,
-      };
-    }
-  }
-
-
-
-
-
-
-  fetchExpense() async {
-    try {
-      final currentUser = auth.currentUser;
-      if (currentUser == null) {
-        print("User not logged in");
-        return;
-      }
-
-      final uid = currentUser.uid;
-      QuerySnapshot expenseSnapshot = await expenseCollection
-          .where("userId", isEqualTo: uid)
-          .get();
-
-      print("Current user info:");
-      print("UID: ${currentUser.uid}");
-      print("Email: ${currentUser.email}");
-
-      // Print raw docs with userId before mapping
-      for (var doc in expenseSnapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        print("Raw Expense Doc => ID: ${doc.id}, UserId: ${data['userId']}, Name: ${data['name']}, Amount: ${data['amount']}, Date: ${data['date']}");
-      }
-
-      final List<Expense> retrievedExpense = expenseSnapshot.docs.map(
-            (doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          data['id'] = doc.id;
-          return Expense.fromJson(data);
-        },
-      ).toList();
-
-      expense.clear();
-      expense.assignAll(retrievedExpense);
-
-      for (var exp in expense) {
-        print("Mapped Expense => ID: ${exp.id}, Name: ${exp.name}, Amount: ${exp.amount}, Date: ${exp.date}");
-      }
-
-
-     // Get.snackbar("Success", "Fetched expenses successfully", colorText: TColor.line);
-    } catch (e) {
-      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
-      print("Error fetching expenses: $e");
-    } finally {
-      update();
-    }
-  }
-
-  //totalMonthly expense
-
-  Future<double> calculateMonthlyExpense() async {
-    try {
-      DateTime now = DateTime.now();
-      DateTime startOfMonth = DateTime(now.year, now.month, 1);
-      DateTime endOfMonth = DateTime(now.year, now.month + 1, 1).subtract(Duration(milliseconds: 1));
-
-      QuerySnapshot querySnapshot = await expenseCollection
-          .where("userId", isEqualTo: auth.currentUser!.uid)
-          .where("date", isGreaterThanOrEqualTo: startOfMonth)
-          .where("date", isLessThanOrEqualTo: endOfMonth)
-          .get();
-
-      double totalExpense = 0;
-      for (var doc in querySnapshot.docs) {
-        totalExpense += (doc['amount'] ?? 0).toDouble();
-      }
-
-      return totalExpense;
-    } catch (e) {
-      print("Error calculating monthly expense: $e");
-      return 0.0;
-    }
-  }
-
-  //fetch total monthly income and expense
-  Future<void> fetchMonthlyIncomeAndExpense() async {
-    monthlyExpense.value = await calculateMonthlyExpense();
-    monthlyIncome.value = await calculateMonthlyIncome();
-  }
-
- //delete expense
-  deleteExpense(String id) async{
-   try {
-     await expenseCollection.doc(id).delete();
-     fetchExpense();
-     Get.snackbar("Success", "expense added successfully", colorText: TColor.line);
-   } catch (e) {
-     Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
-     print(e);
-   }
-  }
-
-
-  //income
-  addIncome({required String categoryId}) async{
-    try{
-      final double parsedAmount = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
       DocumentReference doc = incomeCollection.doc();
-      Income income= Income(
+      Income income = Income(
         id: doc.id,
         name: descriptionCtrl.text,
         amount: parsedAmount,
         date: DateTime.now(),
         userId: auth.currentUser!.uid,
-        categoryId: categoryId, // Make sure your Expense model has this field
-
       );
 
       final incomeJson = income.toJson();
 
+      await doc.set(incomeJson);
 
-      doc.set(incomeJson);
+      Get.snackbar("Success", "Income added successfully", colorText: TColor.line);
 
-
-      //Get.snackbar("Success", "income added successfully", colorText: TColor.line);
       setValueDefault();
-      await  fetchIncome();
-    }catch(e){
+      await fetchIncome();
+      await calculateMonthlyIncome();
+
+      return true;
+    } catch (e) {
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
       print(e);
-
+      return false;
     }
-
-
-
   }
+
 
   //update income
   Future<void> updateIncome({
     required String incomeId,
-    required String categoryId,
+
     required String newName,
     required double newAmount,
   }) async {
@@ -327,7 +98,7 @@ class HomeController extends GetxController{
         amount: newAmount,
         date: DateTime.now(), // Optionally keep original date if needed
         userId: auth.currentUser!.uid,
-        categoryId: categoryId,
+
       );
 
       final incomeJson = updatedIncome.toJson();
@@ -345,7 +116,7 @@ class HomeController extends GetxController{
 
 
   // total income in month
-  Future<double> calculateMonthlyIncome() async {
+  Future<void> calculateMonthlyIncome() async {
     try {
       DateTime now = DateTime.now();
       DateTime startOfMonth = DateTime(now.year, now.month, 1);
@@ -357,17 +128,19 @@ class HomeController extends GetxController{
           .where("date", isLessThanOrEqualTo: endOfMonth)
           .get();
 
-      double totalIncome = 0;
+      double totalIncomeAmount = 0;
       for (var doc in querySnapshot.docs) {
-        totalIncome += (doc['amount'] ?? 0).toDouble();
+        totalIncomeAmount += (doc['amount'] ?? 0).toDouble();
       }
 
-      return totalIncome;
+      totalIncome.value = totalIncomeAmount; // update the reactive variable
+      print("print total income amount, ${totalIncomeAmount}");
     } catch (e) {
       print("Error calculating monthly income: $e");
-      return 0.0;
+      totalIncome.value = 0.0; // fallback to 0 if there's an error
     }
   }
+
 
 
 
@@ -380,8 +153,16 @@ class HomeController extends GetxController{
       }
 
       final uid = currentUser.uid;
+      final DateTime now = DateTime.now();
+
+      // Define start and end of the current month
+      final DateTime startOfMonth = DateTime(now.year, now.month, 1);
+      final DateTime endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
       QuerySnapshot incomeSnapshot = await incomeCollection
           .where("userId", isEqualTo: uid)
+          .where("date", isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+          .where("date", isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
           .get();
 
       final List<Income> retrievedIncome = incomeSnapshot.docs.map(
@@ -391,20 +172,18 @@ class HomeController extends GetxController{
       income.clear();
       income.assignAll(retrievedIncome);
 
-      // Print each expense nicely
       for (var inc in income) {
-        print("Fetched Expense => ID: ${inc.id}, Name: ${inc.name}, Amount: ${inc.amount}, Date: ${inc.date}");
+        print("Fetched income => ID: ${inc.id}, Name: ${inc.name}, Amount: ${inc.amount}, Date: ${inc.date}");
       }
 
-      //Get.snackbar("Success", "Fetched income successfully", colorText: TColor.line);
     } catch (e) {
-      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
+
       print("Error fetching income: $e");
-    }finally{
+    } finally {
       update();
     }
-
   }
+
 //delete income
   deleteIncome(String id) async{
     try {

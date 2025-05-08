@@ -4,11 +4,13 @@ import 'package:get/get.dart';
 import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/common_widget/primary_button.dart';
 import 'package:untitled/common_widget/rounded_textfield.dart';
-import 'package:untitled/controller/categoryController.dart';
-import 'package:untitled/controller/home_controller.dart';
+import 'package:untitled/controller/expense_controller.dart';
 
-import '../../common_widget/image_button.dart';
-import '../../controller/app_initialization_controller.dart';
+import 'package:untitled/controller/home_controller.dart';
+import 'package:untitled/view/add_subscription/add_income.dart';
+import 'package:untitled/view/add_subscription/add_spending.dart';
+
+
 
 class AddSubScriptionView extends StatefulWidget {
   const AddSubScriptionView({super.key});
@@ -18,12 +20,6 @@ class AddSubScriptionView extends StatefulWidget {
 }
 
 class _AddSubScriptionViewState extends State<AddSubScriptionView> {
-  final CategoryController categoryCtrl = Get.put(CategoryController());
-  final HomeController homeCtrl = Get.put(HomeController());
-
-  double amountVal = 0.0;
-  String? selectedCategoryName;
-  String? selectedCategoryId;
 
   List subArr = [
     {"name": "Salary", "icon": "assets/img/money.jpg"},
@@ -33,62 +29,53 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
     {"name": "NetFlix", "icon": "assets/img/netflix_logo.png"}
   ];
 
+
+
+  final ExpenseController expenseCtrl = Get.put(ExpenseController());
+
+
+
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
-    categoryCtrl.filterCategoryByName(""); // Load all categories initially
+
   }
+
+
+  String? selectedCategory;
+
   void handleSubmit() async {
-    if (selectedCategoryId == null || selectedCategoryId!.isEmpty) {
-      Get.snackbar("Error", "Please select a category",
-          colorText: TColor.secondary);
-      return;
-    }
 
-    if (homeCtrl.descriptionCtrl.text.trim().isEmpty) {
+    print("add expense button is clicked");
+
+
+
+    if (expenseCtrl.categoryCtrl.text.trim().isEmpty || expenseCtrl.amountCtrl.text.trim().isEmpty) {
       Get.snackbar("Error", "Please enter a description",
           colorText: TColor.secondary);
       return;
     }
-
-    await homeCtrl.addExpenses(categoryId: selectedCategoryId!);
-
-    Get.snackbar("Success", "Transaction added successfully",
-        colorText: TColor.line);
-
-    // Reset state
     setState(() {
-      amountVal = 0.0;
-      homeCtrl.descriptionCtrl.clear();
-      selectedCategoryId = null;
-      selectedCategoryName = null;
+      _isLoading = true;
     });
-  }
-  void handleAdd() async {
-    if (selectedCategoryId == null || selectedCategoryId!.isEmpty) {
-      Get.snackbar("Error", "Please select a category",
-          colorText: TColor.secondary);
-      return;
+     final addExpense = await expenseCtrl.addExpense();
+    setState(() {
+      _isLoading = false;
+    });
+    if(addExpense){
+      Get.snackbar("Success", "Transaction added successfully",
+          colorText: TColor.line);
+      // Reset state
+      setState(() {
+
+        expenseCtrl.categoryCtrl.clear();
+        expenseCtrl.amountCtrl.clear();
+      });
+
     }
 
-    if (homeCtrl.descriptionCtrl.text.trim().isEmpty) {
-      Get.snackbar("Error", "Please enter a description",
-          colorText: TColor.secondary);
-      return;
-    }
-
-    await homeCtrl.addIncome(categoryId: selectedCategoryId!);
-
-    Get.snackbar("Success", "Transaction added successfully",
-        colorText: TColor.line);
-
-    // Reset state
-    setState(() {
-      amountVal = 0.0;
-      homeCtrl.descriptionCtrl.clear();
-      selectedCategoryId = null;
-      selectedCategoryName = null;
-    });
   }
 
 
@@ -96,8 +83,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
   Widget build(BuildContext context) {
 
     // Ensure initialization happens when the screen is built
-    final appInitController = Get.put(AppInitializationController());
-    appInitController.initialize();
+    //
 
     var media = MediaQuery.sizeOf(context);
     return GetBuilder<HomeController>(builder: (_) {
@@ -137,7 +123,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                             Row(
                               children: [
                                 Text(
-                                  "Add new income \nor expense",
+                                  "Set your expense",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: TColor.gray80,
@@ -180,6 +166,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                                     ),
                                   ),
                                   const Spacer(),
+
                                   Text(
                                     sObj["name"],
                                     style: TextStyle(
@@ -197,70 +184,79 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                   ),
                 ),
               ),
-
-              // Category Dropdown
+             SizedBox(height: 20,),
               Padding(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: GetBuilder<CategoryController>(
-                  builder: (catCtrl) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // TextField(
-                        //   decoration: InputDecoration(
-                        //     hintText: 'Search category',
-                        //     prefixIcon: Icon(Icons.search),
-                        //     border: OutlineInputBorder(
-                        //         borderRadius: BorderRadius.circular(12)),
-                        //   ),
-                        //   onChanged: (val) {
-                        //     catCtrl.filterCategoryByName(val);
-                        //   },
-                        // ),
-
-                        DropdownButtonFormField<String>(
-                          value: selectedCategoryId,
-                          hint: Text('Select Category', style: TextStyle(color: TColor.gray60)),
-                          isExpanded: true,
-                          decoration: InputDecoration(
-                            labelText: 'Category',
-                            prefixIcon: Icon(Icons.category),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16), // margin on both sides
+                child: Container(
+                  alignment: Alignment.center, // center content inside container
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          Get.to(() => const AddSpendingView());
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: TColor.line),
+                            color: TColor.back,
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          items: catCtrl.categoryList.map((cat) {
-                            return DropdownMenuItem<String>(
-                              value: cat.id,
-                              child: Text(cat.name ?? ''),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedCategoryId = value;
-                              selectedCategoryName = catCtrl.categoryList
-                                  .firstWhere((cat) => cat.id == value)
-                                  .name;
-                            });
-                          },
+                          child: const Text(
+                            "Add your subCategory",
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-
-                      ],
-                    );
-                  },
+                      ),
+                      const SizedBox(width: 20),
+                      InkWell(
+                        onTap: () {
+                          Get.to(() => const AddIncomeView());
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: TColor.line),
+                            color: TColor.back,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Text(
+                            "Add your income",
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+
+
 
               // Description Field
               Padding(
                   padding:
                   const EdgeInsets.only(top: 20, left: 20, right: 20),
                   child: RoundedTextField(
-                      title: "Description",
+                      title: "category",
                       titleAlign: TextAlign.center,
-                      controller: homeCtrl.descriptionCtrl)),
+                      controller: expenseCtrl.categoryCtrl
+                  )),
 
               // Amount Section
               Padding(
@@ -270,38 +266,23 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                   child: RoundedTextField(
                       title: "Amount",
                       titleAlign: TextAlign.center,
-                      controller: homeCtrl.amountCtrl)),
+                      controller: expenseCtrl.amountCtrl
+                  )),
 
 
               // Add Buttons
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: PrimaryButton(
-                  title: "Add new expenses",
-                  onPress: () async {
-                     handleSubmit();
-                    setState(() {
-                      amountVal = 0.0;
-                    });
-                  },
+                  title: _isLoading ? "Adding..." : "Add new Expense",
+                  onPress: _isLoading ? () {}: handleSubmit,
                   color: TColor.white,
+                  isLoading: _isLoading,
                 ),
               ),
               const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: PrimaryButton(
-                  title: "Add new income",
-                  onPress: () async {
-                    handleAdd();
-                    setState(() {
-                      amountVal = 0.0;
-                    });
-                  },
-                  color: TColor.white,
-                ),
-              ),
-              const SizedBox(height: 20),
+
             ],
           ),
         ),

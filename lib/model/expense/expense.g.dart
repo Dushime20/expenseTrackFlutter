@@ -8,19 +8,17 @@ part of 'expense.dart';
 
 Expense _$ExpenseFromJson(Map<String, dynamic> json) => Expense(
       id: json['id'] as String?,
-      name: json['name'] as String?,
+      category: json['category'] as String?,
       amount: (json['amount'] as num?)?.toDouble(),
       date:
           json['date'] == null ? null : DateTime.parse(json['date'] as String),
       userId: json['userId'] as String?,
-      categoryId: json['categoryId'] as String?,
     );
 
 Map<String, dynamic> _$ExpenseToJson(Expense instance) => <String, dynamic>{
       'id': instance.id,
-      'name': instance.name,
+      'category': instance.category,
       'amount': instance.amount,
       'date': instance.date?.toIso8601String(),
       'userId': instance.userId,
-      'categoryId': instance.categoryId,
     };

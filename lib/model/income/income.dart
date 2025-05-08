@@ -21,8 +21,6 @@ class Income{
   @JsonKey(name: "userId") // ADDED userId field
   final String? userId;
 
-  @JsonKey(name: "categoryId") // ADDED userId field
-  final String? categoryId;
 
   Income( {
   required this.id,
@@ -30,7 +28,7 @@ class Income{
   required this.amount,
   required this.date,
   required this.userId,
-  required this.categoryId,
+
 });
 
   // From JSON: Convert Timestamp to DateTime
@@ -41,7 +39,7 @@ class Income{
       amount: (json['amount'] as num?)?.toDouble(),
       date: (json['date'] as Timestamp?)?.toDate(),  // Convert Timestamp to DateTime
       userId: json['userId'] as String?,
-      categoryId: json['category'] as String?,   // ADDED userId parsing
+     // ADDED userId parsing
     );
   }
 
@@ -53,7 +51,7 @@ class Income{
       'amount': amount,
       'date': date,           // Firestore will convert DateTime to Timestamp
       'userId': userId,
-      'categoryId':categoryId//  ADDED userId to JSON output
+
     };
   }
 

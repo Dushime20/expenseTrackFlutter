@@ -19,30 +19,38 @@ class IconItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: (){},
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               title,
               style: TextStyle(
-                  color: TColor.gray70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600),
+                color: TColor.gray70,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            Expanded(
+            TextButton(
+              onPressed: onTap,
+              style: TextButton.styleFrom(
+                foregroundColor: TColor.white,
+                backgroundColor: TColor.line,
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              ),
               child: Text(
                 value,
-                textAlign: TextAlign.right,
                 style: TextStyle(
-                    color: TColor.gray60,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
         ),
+
       ),
     );
   }

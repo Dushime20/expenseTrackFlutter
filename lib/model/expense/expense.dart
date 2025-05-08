@@ -8,8 +8,8 @@ class Expense {
   @JsonKey(name: "id")
   final String? id;
 
-  @JsonKey(name: "name")
-  final String? name;
+  @JsonKey(name: "category")
+  final String? category;
 
   @JsonKey(name: "amount")
   final double? amount;
@@ -19,28 +19,26 @@ class Expense {
 
   @JsonKey(name: "userId") // ADDED userId field
   final String? userId;
-  @JsonKey(name: "categoryId") // ADDED userId field
-  final String? categoryId;//  ADDED userId field
+
 
   Expense({
     required this.id,
-    required this.name,
+    required this.category,
     required this.amount,
     required this.date,
     required this.userId,
-    required this.categoryId,
-    // ADDED userId to constructor
+
   });
 
   // From JSON: Convert Timestamp to DateTime
   factory Expense.fromJson(Map<String, dynamic> json) {
     return Expense(
       id: json['id'] as String?,
-      name: json['name'] as String?,
+      category: json['category'] as String?,
       amount: (json['amount'] as num?)?.toDouble(),
       date: (json['date'] as Timestamp?)?.toDate(),  // Convert Timestamp to DateTime
       userId: json['userId'] as String?,
-      categoryId: json['categoryId'] as String?,// ADDED userId parsing
+
     );
   }
 
@@ -48,11 +46,11 @@ class Expense {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
+      'category': category,
       'amount': amount,
       'date': date,           // Firestore will convert DateTime to Timestamp
       'userId': userId,
-      'categoryId': categoryId,//  ADDED userId to JSON output
+
     };
   }
 }

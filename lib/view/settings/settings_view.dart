@@ -143,43 +143,7 @@ class _SettingsViewState extends State<SettingsView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 15, bottom: 8),
-                    child: Text(
-                      "General",
-                      style: TextStyle(
-                          color: TColor.gray60,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: TColor.border.withOpacity(0.1),
-                      ),
-                      color: TColor.white,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Column(
-                      children: [
-                        IconItemRow(
-                          title: "Password",
-                          value: "change password",
-                          onTap: (){},
-                        ),
 
-                        IconItemRow(
-                          title: "Theme",
-
-                          value: "Dark",
-                          onTap: (){},
-                        ),
-
-                      ],
-                    ),
-                  ),
 
                   Padding(
                     padding: const EdgeInsets.only(top: 20, bottom: 8),
@@ -211,6 +175,7 @@ class _SettingsViewState extends State<SettingsView> {
                             await generator.generateAndSaveExpenseReport();
                           },
                         ),
+                        SizedBox(height: 30,),
 
                         IconItemRow(
                           title: "Income Report",
@@ -221,6 +186,7 @@ class _SettingsViewState extends State<SettingsView> {
                             await generator.generateAndSaveIncomeReport();
                           },
                         ),
+                        SizedBox(height: 30,),
                         IconItemRow(
                           title: "Budget Report",
 

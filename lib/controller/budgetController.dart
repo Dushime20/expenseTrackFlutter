@@ -13,16 +13,23 @@ class BudgetController extends GetxController {
 
 
   late final CollectionReference budgetCollection = firestore.collection('budget');
+  late final CollectionReference incomeCollection =firestore.collection('income');
   late final CollectionReference expenseCollection =firestore.collection('expense');
-  late final CollectionReference categoryCollection = firestore.collection('category');
+
 
   final TextEditingController amountCtrl = TextEditingController();
+  Rx<DateTime?> selectedStartDate = Rx<DateTime?>(null);
+  Rx<DateTime?> selectedEndDate = Rx<DateTime?>(null);
 
-  var totalBudget= 0.0.obs;
-  double totalBudgetAmount = 0.0;
-  double usedBudget = 0.0;
-  double remainingBudget = 0.0;
+
+
   bool isBudgetFound = false;
+
+  RxDouble totalBudgetAmount = 0.0.obs;
+  RxDouble usedBudgetAmount = 0.0.obs;
+  RxDouble remainingBudgetAmount = 0.0.obs;
+
+
 
 
 
@@ -32,28 +39,229 @@ class BudgetController extends GetxController {
   @override
   Future<void> onInit() async {
     super.onInit();
-
-    // Check if user is logged in
-    final currentUser = auth.currentUser;
-
-    if (currentUser == null) {
-      print("User not logged in. Skipping data fetch.");
-      return;
-    }
+    fetchBudgetStatus();
 
 
-    fetchBudget();
-    getCurrentMonthBudgetStatus();
 
-    loadBudgetStatus();// Optionally fetch budgets when controller initializes
-    loadBudgetsByCategory();
   }
 
-  /// Add a budget to Firestore
-  Future<void> addBudget({
-    required String categoryId,
-    required DateTime startDate,
-    required DateTime endDate,
+  //Add budget for current loggedin user
+  Future<bool> addBudget() async {
+    try {
+      final double enteredAmount = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
+      final String userId = auth.currentUser!.uid;
+
+      // Ensure dates are selected
+      if (selectedStartDate.value == null || selectedEndDate.value == null) {
+        Get.snackbar("Error", "Please select both start and end dates.",
+            colorText: TColor.secondary);
+        return false;
+      }
+
+      // Step 1: Get total income for the current month
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final startOfNextMonth = DateTime(now.year, now.month + 1, 1);
+
+      final incomeSnapshot = await incomeCollection
+          .where('userId', isEqualTo: userId)
+          .where('date', isGreaterThanOrEqualTo: startOfMonth)
+          .where('date', isLessThan: startOfNextMonth)
+          .get();
+
+      double totalIncome = 0.0;
+      for (var doc in incomeSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>?;
+        if (data != null) {
+          final amount = data['amount'] ?? 0.0;
+          totalIncome += double.tryParse(amount.toString()) ?? 0.0;
+        }
+      }
+
+      // Step 2: Get total existing budgets for the current month
+      final budgetSnapshot = await budgetCollection
+          .where('userId', isEqualTo: userId)
+          .where('startDate', isGreaterThanOrEqualTo: startOfMonth)
+          .where('startDate', isLessThan: startOfNextMonth)
+          .get();
+
+      double existingBudgetTotal = 0.0;
+      for (var doc in budgetSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>?;
+        if (data != null) {
+          final amount = data['amount'] ?? 0.0;
+          existingBudgetTotal += double.tryParse(amount.toString()) ?? 0.0;
+        }
+      }
+
+      // Step 3: Check if new budget would exceed total income
+      if (enteredAmount + existingBudgetTotal > totalIncome) {
+        Get.snackbar("Error", "Adding this budget will exceed your total income.",
+            colorText: TColor.secondary);
+        return false;
+      }
+
+      // Step 4: Save budget
+      final doc = budgetCollection.doc();
+      final budget = {
+        'id': doc.id,
+        'amount': enteredAmount,
+        'startDate': selectedStartDate.value,
+        'endDate': selectedEndDate.value,
+        'userId': userId,
+      };
+
+      await doc.set(budget);
+      await fetchBudgetStatus();
+
+      Get.snackbar("Success", "Budget added successfully", colorText: TColor.line);
+      return true;
+    } catch (e) {
+      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
+      print(e);
+      return false;
+    }
+  }
+
+
+
+  // Fetch budgets for the currently logged-in user in current month
+  Future<void> fetchBudget() async {
+    try {
+      final currentUser = auth.currentUser;
+      if (currentUser == null) {
+        print("Error: User not logged in");
+        return;
+      }
+
+      // Get the start and end of the current month
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+      QuerySnapshot snapshot = await budgetCollection
+          .where('userId', isEqualTo: currentUser.uid)
+          .where('startDate', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+          .where('startDate', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+          .get();
+
+      final List<Map<String, dynamic>> budgets = snapshot.docs.map((doc) {
+        return {
+          ...doc.data() as Map<String, dynamic>,
+          'id': doc.id, // Include document ID
+        };
+      }).toList();
+
+      budgetList.assignAll(budgets);
+
+      print("Fetched ${budgetList.length} budgets for the current month.");
+    } catch (e) {
+      print("Error: Failed to fetch budgets - $e");
+    } finally {
+      update();
+    }
+  }
+
+
+
+  //fetch total amount of budget
+  // Future<void> fetchTotalBudgetForCurrentMonth() async {
+  //   double total = 0.0;
+  //
+  //   try {
+  //     final currentUser = auth.currentUser;
+  //     if (currentUser == null) {
+  //       Get.snackbar("Error", "User not logged in");
+  //       return;
+  //     }
+  //
+  //     final now = DateTime.now();
+  //     final startOfMonth = DateTime(now.year, now.month, 1);
+  //     final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+  //
+  //     final snapshot = await budgetCollection
+  //         .where('userId', isEqualTo: currentUser.uid)
+  //         .where('startDate', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+  //         .where('endDate', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+  //         .get();
+  //
+  //     for (var doc in snapshot.docs) {
+  //       final data = doc.data() as Map<String, dynamic>;
+  //       final amount = data['amount'];
+  //       if (amount is num) {
+  //         total += amount.toDouble();
+  //       }
+  //     }
+  //
+  //     totalBudgetAmount.value = total;
+  //     print("Total budget: $total");
+  //   } catch (e) {
+  //     Get.snackbar("Error", "Failed to fetch total budget: $e");
+  //   } finally {
+  //     update();
+  //   }
+  // }
+
+  Future<void> fetchBudgetStatus() async {
+    try {
+      final currentUser = auth.currentUser;
+      if (currentUser == null) {
+        print("Error User not logged in");
+        return;
+      }
+
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+      double totalBudget = 0.0;
+      double usedBudget = 0.0;
+
+      // 1. Fetch total budgets
+      final budgetSnapshot = await budgetCollection
+          .where('userId', isEqualTo: currentUser.uid)
+          .where('startDate', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+          .where('endDate', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+          .get();
+
+      for (var doc in budgetSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        if (data['amount'] is num) {
+          totalBudget += (data['amount'] as num).toDouble();
+        }
+      }
+
+      // 2. Fetch total expenses
+      final expenseSnapshot = await expenseCollection
+          .where('userId', isEqualTo: currentUser.uid)
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+          .get();
+
+      for (var doc in expenseSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        if (data['amount'] is num) {
+          usedBudget += (data['amount'] as num).toDouble();
+        }
+      }
+
+      // 3. Update state
+      totalBudgetAmount.value = totalBudget;
+      usedBudgetAmount.value = usedBudget;
+      remainingBudgetAmount.value = totalBudget - usedBudget;
+      print("Total: $totalBudget, Used: $usedBudget, Remaining: ${totalBudget - usedBudget}");
+    } catch (e) {
+      print("Error Failed to fetch budget status: $e");
+    }
+  }
+
+
+  //update current month budget of current logged in user
+  Future<void> updateBudget({
+    required String id,
+    double? newAmount,
+    DateTime? newStartDate,
+    DateTime? newEndDate,
   }) async {
     try {
       final currentUser = auth.currentUser;
@@ -62,257 +270,53 @@ class BudgetController extends GetxController {
         return;
       }
 
-      final double parsedAmount = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
+      Map<String, dynamic> updatedData = {};
 
-      if (parsedAmount <= 0) {
-        Get.snackbar("Invalid Amount", "Please enter a valid amount.");
+      if (newAmount != null) {
+        updatedData['amount'] = newAmount;
+      }
+      if (newStartDate != null) {
+        updatedData['startDate'] = newStartDate;
+      }
+      if (newEndDate != null) {
+        updatedData['endDate'] = newEndDate;
+      }
+
+      if (updatedData.isEmpty) {
+        Get.snackbar("Error", "No data provided to update");
         return;
       }
 
-      DocumentReference doc = budgetCollection.doc();
+      await budgetCollection.doc(id).update(updatedData);
 
-      Map<String, dynamic> budgetData = {
-        'id': doc.id,
-        'userId': currentUser.uid,
-        'categoryId': categoryId,
-        'amount': parsedAmount,
-        'startDate': Timestamp.fromDate(startDate),
-        'endDate': Timestamp.fromDate(endDate),
+      // Refresh UI
+      fetchBudgetStatus();
 
-      };
+      Get.snackbar("Success", "Budget updated successfully", colorText: TColor.line);
 
-      await doc.set(budgetData);
-
-      Get.snackbar("Success", "Budget added successfully",colorText: TColor.line);
-      amountCtrl.clear();
-
-      await fetchBudget();
-      await getCurrentMonthBudgetStatus();// refresh list
     } catch (e) {
-      Get.snackbar("Error", "Failed to add budget: $e");
-    }
-  }
-
-  var budgetsByCategory = <Map<String, dynamic>>[].obs;
-
-  Future<void> loadBudgetsByCategory() async {
-    final data = await fetchBudgetByCategoryWithNames();
-    budgetsByCategory.value = data.entries.map((entry) => {
-      "name": entry.key,
-      "amount": entry.value,
-    }).toList();
-    update();
-  }
-
-
-
-//fetchBudgetByCategoryWithNames
-  Future<Map<String, double>> fetchBudgetByCategoryWithNames() async {
-    try {
-      final userId = auth.currentUser!.uid;
-
-      // 1. Fetch all budgets for the current user
-      QuerySnapshot budgetSnapshot = await budgetCollection
-          .where('userId', isEqualTo: userId)
-          .get();
-
-      if (budgetSnapshot.docs.isEmpty) {
-        return {};
-      }
-
-      // 2. Group by categoryId and sum amount
-      Map<String, double> categoryAmounts = {};
-
-      for (var doc in budgetSnapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final String categoryId = data['categoryId'];
-        final double amount = (data['amount'] as num).toDouble();
-
-        categoryAmounts[categoryId] = (categoryAmounts[categoryId] ?? 0.0) + amount;
-      }
-
-      // 3. Fetch all categories and map them: {categoryId: name}
-      QuerySnapshot categorySnapshot = await categoryCollection.get();
-      Map<String, String> categoryNames = {
-        for (var doc in categorySnapshot.docs)
-          doc.id: (doc['name'] as String)
-      };
-
-      // 4. Map category IDs to names
-      Map<String, double> result = {};
-      categoryAmounts.forEach((categoryId, amount) {
-        final name = categoryNames[categoryId] ?? 'Unknown';
-        result[name] = amount;
-      });
-
-      return result;
-    } catch (e) {
-      print("Error: $e");
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
-      return {};
+      print("Error updating budget: $e");
     }
   }
 
 
 
-  Future<void> loadBudgetStatus() async {
-    final result = await getCurrentMonthBudgetStatus();
-    isBudgetFound = result['found'] ?? false;
-    usedBudget = result['used'] ?? 0.0;
-    remainingBudget = result['remaining'] ?? 0.0;
-    totalBudgetAmount = result['totalBudgetAmount'] ?? 0.0;
-    update(); // Notify listeners
-  }
-  
-//total budget
-  Future<double> calculateMonthlyBudget() async {
-    try {
-      final currentUser = auth.currentUser;
-      if (currentUser == null) return 0.0;
-
-      DateTime now = DateTime.now();
-      DateTime startOfMonth = DateTime(now.year, now.month, 1);
-      DateTime endOfMonth = DateTime(now.year, now.month + 1, 1).subtract(Duration(milliseconds: 1));
-
-      QuerySnapshot querySnapshot = await budgetCollection
-          .where('userId', isEqualTo: currentUser.uid)
-          .where('startDate', isLessThanOrEqualTo: endOfMonth)
-          .where('endDate', isGreaterThanOrEqualTo: startOfMonth)
-          .get();
-
-      double totalBudget = 0.0;
-      for (var doc in querySnapshot.docs) {
-        totalBudget += (doc['amount'] ?? 0).toDouble();
-      }
-
-      return totalBudget;
-    } catch (e) {
-      print("Error calculating monthly budget: $e");
-      return 0.0;
-    }
-  }
-
-
-  //used and remaining budget for current logged in user
-  Future<Map<String, dynamic>> getCurrentMonthBudgetStatus() async {
-    try {
-      // Get current user ID
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        print("No user is currently logged in.");
-        return {
-          "found": false,
-          "used": 0.0,
-          "remaining": 0.0,
-          "totalBudgetAmount": 0.0
-        };
-      }
-      final String currentUserId = currentUser.uid;
-
-      // Get current month date range
-      final now = DateTime.now();
-      final startOfMonth = DateTime(now.year, now.month, 1);
-      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-
-      // Find budget for current month
-      final budgetSnapshot = await budgetCollection
-          .where('userId', isEqualTo: currentUserId)
-          .where('startDate', isLessThanOrEqualTo: Timestamp.fromDate(now))
-          .where('endDate', isGreaterThanOrEqualTo: Timestamp.fromDate(now))
-          .get();
-
-      if (budgetSnapshot.docs.isEmpty) {
-        print("No budget found for current month.");
-        return {
-          "found": false,
-          "used": 0.0,
-          "remaining": 0.0,
-          "totalBudgetAmount": 0.0
-        };
-      }
-
-      // Use the first applicable budget (in case there are multiple)
-      final budgetDoc = budgetSnapshot.docs.first;
-      final data = budgetDoc.data() as Map<String, dynamic>;
-
-      final String categoryId = data['categoryId'];
-      final double totalBudgetAmount = await calculateMonthlyBudget() ;
-
-      // Get expenses for this category in the current month
-      final expenseSnapshot = await expenseCollection
-          .where('userId', isEqualTo: currentUserId)
-          .where('categoryId', isEqualTo: categoryId)
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
-          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
-          .get();
-
-      double totalUsed = await homeController.calculateMonthlyExpense();
-
-
-      double remaining = totalBudgetAmount - totalUsed;
-
-      print("total budget: $totalBudgetAmount");
-      print("used budget: $totalUsed");
-      print("remaining budget: $remaining");
-
-      return {
-        "found": true,
-        "used": totalUsed,
-        "remaining": remaining < 0 ? 0.0 : remaining,
-        "totalBudgetAmount": totalBudgetAmount,
-        "budgetId": budgetDoc.id,  // Including the budget ID in case you need it
-        "budgetName": data['name'] ?? "Monthly Budget"
-      };
-    } catch (e) {
-      print("Error calculating current month budget: $e");
-      return {
-        "found": false,
-        "used": 0.0,
-        "remaining": 0.0,
-        "totalBudgetAmount": 0.0
-      };
-    }
-  }
 
 
 
-  /// Fetch budgets for the currently logged-in user
-  Future<void> fetchBudget() async {
-    try {
-      final currentUser = auth.currentUser;
-      if (currentUser == null) {
-        Get.snackbar("Error", "User not logged in");
-        return;
-      }
-
-      QuerySnapshot snapshot = await budgetCollection
-          .where('userId', isEqualTo: currentUser.uid)
-          .get();
-
-      final List<Map<String, dynamic>> budgets = snapshot.docs.map((doc) {
-        return doc.data() as Map<String, dynamic>;
-      }).toList();
-
-      budgetList.assignAll(budgets);
-
-      print("Fetched ${budgetList.length} budgets.");
-    } catch (e) {
-      Get.snackbar("Error", "Failed to fetch budgets: $e");
-    } finally {
-      update();
-    }
-  }
 
 
   //delete expense
-  deleteExpense(String id) async{
+  Future<void> deleteBudget(String id) async {
     try {
       await budgetCollection.doc(id).delete();
-      fetchBudget();
-      Get.snackbar("Success", "expense added successfully", colorText: TColor.line);
+      fetchBudgetStatus();
+      Get.snackbar("Success", "Budget deleted successfully", colorText: TColor.line);
     } catch (e) {
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
-      print(e);
+      print("Error deleting budget: $e");
     }
   }
+
 }

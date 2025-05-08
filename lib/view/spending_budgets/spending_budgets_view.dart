@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
@@ -5,8 +6,10 @@ import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/common_widget/budgets_row.dart';
 import 'package:untitled/common_widget/custom_arc_180_painter.dart';
 import 'package:untitled/controller/budgetController.dart';
+import 'package:untitled/view/budget/add_budget_screen.dart';
 
-import '../category/add_category_view.dart';
+import '../../controller/expense_controller.dart';
+import '../budget/update_budget_screen.dart';
 import '../settings/settings_view.dart';
 import 'package:get/get.dart';
 
@@ -18,37 +21,13 @@ class SpendingBudgetsView extends StatefulWidget {
 }
 
 class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
-  List budgetArr = [
-    {
-      "name": "Auto & Transport",
-      "icon": "assets/img/auto_&_transport.png",
-      "spend_amount": "25.99",
-      "total_budget": "400",
-      "left_amount": "250.01",
-      "color": TColor.line
-    },
-    {
-      "name": "Entertainment",
-      "icon": "assets/img/entertainment.png",
-      "spend_amount": "50.99",
-      "total_budget": "600",
-      "left_amount": "300.01",
-      "color": TColor.line
-    },
-    {
-      "name": "Security",
-      "icon": "assets/img/security.png",
-      "spend_amount": "5.99",
-      "total_budget": "600",
-      "left_amount": "250.01",
-      "color": TColor.line
-    },
-  ];
+  final ExpenseController expenseCtrl = Get.put(ExpenseController());
 
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.sizeOf(context);
     return GetBuilder<BudgetController>(builder: (ctrl) {
+      var bObj = ctrl.budgetList.first;
       return Scaffold(
         backgroundColor: TColor.back,
         body: SingleChildScrollView(
@@ -95,14 +74,13 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                       const SizedBox(
                         height: 10,
                       ),
-                      Text(
-                        "${ctrl.totalBudgetAmount.toStringAsFixed(2)} Rwf budget",
-                        style: TextStyle(
-                            color: TColor.gray80,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700),
-                      ),
-
+                      Obx(() => Text(
+                            "${ctrl.totalBudgetAmount.value.toStringAsFixed(2)} Rwf budget",
+                            style: TextStyle(
+                                color: TColor.gray80,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700),
+                          )),
                     ],
                   )
                 ],
@@ -111,74 +89,167 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                 height: 20,
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
                   onTap: () {},
                   child: Container(
-                    height: 110,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: TColor.border.withOpacity(0.1),
+                      height: 180,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: TColor.border.withOpacity(0.1),
+                        ),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                      alignment: Alignment.center,
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Obx(() => Text(
+                                  "${ctrl.usedBudgetAmount.value.toStringAsFixed(2)} Rwf used budget",
+                                  style: TextStyle(
+                                      color: TColor.gray60,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700),
+                                )),
+                            const SizedBox(height: 5),
+                            Obx(() => Text(
+                                  "${ctrl.remainingBudgetAmount.value.toStringAsFixed(2)} Rwf remaining budget",
+                                  style: TextStyle(
+                                      color: TColor.gray60,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700),
+                                )),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    Get.to(() => const AddBudgetScreen());
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: TColor.border),
+                                      color: TColor.back,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: const Text(
+                                      "Manage your budget",
+                                      style: TextStyle(
+                                        color: Colors.black87,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                PopupMenuButton<String>(
+                                  icon: Icon(Icons.more_vert, color: TColor.gray80),
+                                  onSelected: (value) {
+                                    if (value == 'update') {
+                                      DateTime _toDate(dynamic value) {
+                                        if (value is Timestamp) return value.toDate();
+                                        if (value is DateTime) return value;
+                                        return DateTime.now();
+                                      }
 
-                        Text(
-                          "${ctrl.usedBudget.toStringAsFixed(2)} Rwf used budget",
-                          style: TextStyle(
-                              color: TColor.gray60,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(
-                          height: 5,
-                        ),
-                        Text(
-                          "${ctrl.remainingBudget.toStringAsFixed(2)} Rwf remaining budget",
-                          style: TextStyle(
-                              color: TColor.gray60,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700),
-                        ),
+                                      final startDate = _toDate(bObj['startDate']);
+                                      final endDate = _toDate(bObj['endDate']);
 
-                        const SizedBox(
-                          height: 30,),
-                        Text(
-                          "Your budgets are on tack 👍",
-                          style: TextStyle(
-                              color: TColor.gray60,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600),
+                                      Get.to(() => UpdateBudgetScreen(
+                                        budgetId: bObj['id'] ?? '',
+                                        initialAmount: bObj['amount'] ?? 0.0,
+                                        initialStartDate: startDate,
+                                        initialEndDate: endDate,
+                                      ));
+                                    } else if (value == 'delete') {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: const Text("Confirm Deletion"),
+                                            content: const Text("Are you sure you want to delete your budget?"),
+                                            actions: [
+                                              TextButton(
+                                                child: const Text("Cancel"),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop(); // Close the dialog
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop(); // Close the dialog first
+                                                  ctrl.deleteBudget(bObj['id'] ?? ''); // Call the delete function
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    }
+                                  },
+                                  itemBuilder: (BuildContext context) => const <PopupMenuEntry<String>>[
+                                    PopupMenuItem<String>(
+                                      value: 'update',
+                                      child: Text('Update'),
+                                    ),
+                                    PopupMenuItem<String>(
+                                      value: 'delete',
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+
+                              ],
+                            ),
+                            const SizedBox(height: 30),
+                            Text(
+                              "Your budgets are on tack 👍",
+                              style: TextStyle(
+                                  color: TColor.gray60,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      )),
                 ),
               ),
-              ListView.builder(
+
+              Obx(() {
+                if (expenseCtrl.expenseStatusList.isEmpty) {
+                  return const Text("No budgets added yet.");
+                }
+
+                return ListView.builder(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
-                  itemCount: ctrl.budgetsByCategory.length,
+                  itemCount: expenseCtrl.expenseStatusList.length,
                   itemBuilder: (context, index) {
-                    var bObj = ctrl.budgetsByCategory[index];
-
+                    var bObj = expenseCtrl.expenseStatusList[index];
                     return BudgetsRow(
                       bObj: bObj,
                       onPressed: () {},
                     );
-                  }),
+                  },
+                );
+              }),
+
+              //listView
               Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
                   onTap: () {},
@@ -195,14 +266,11 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       alignment: Alignment.center,
-
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           InkWell(
-                            onTap: () {
-                              Get.to(() => const AddCategoryView());
-                            },
+                            onTap: () {},
                             child: Text(
                               "Add new category ",
                               style: TextStyle(

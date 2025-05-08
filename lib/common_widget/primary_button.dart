@@ -7,8 +7,10 @@ class PrimaryButton extends StatelessWidget {
   final FontWeight fontWeight;
   final VoidCallback onPress;
   final Color color;
+  final bool isLoading;
 
-  const PrimaryButton({super.key, required this.title, this.fontSize=14,  this.fontWeight = FontWeight.w600, required this.onPress, required this.color});
+
+  const PrimaryButton({super.key, required this.title, this.fontSize=14,  this.fontWeight = FontWeight.w600, required this.onPress, required this.color, this.isLoading=false});
 
 
 
@@ -30,7 +32,11 @@ Widget build(BuildContext context) {
         elevation: 5,
       ),
       onPressed: onPress,
-      child: Text(
+      child:isLoading
+          ? const CircularProgressIndicator(
+        color: Colors.white,
+      )
+          :  Text(
         title,
         style: TextStyle(
           fontSize: fontSize,

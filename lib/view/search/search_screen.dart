@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:untitled/common/color_extension.dart';
-import '../../controller/categoryController.dart';
-
+import 'package:untitled/controller/expense_controller.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -12,36 +11,39 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final CategoryController categoryController = Get.find<CategoryController>(); // Get the CategoryController
+  final ExpenseController expenseCtrl = Get.put(ExpenseController());
 
-  List<String> _allItems = []; // To hold all categories
-  List<String> _filteredItems = []; // To hold filtered categories
+  List<String> _allItems = []; // All category names
+  List<String> _filteredItems = []; // Filtered category names
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
   }
-
   Future<void> _loadCategories() async {
-    // Wait for the fetch operation to complete
-    await categoryController.fetchCategory();
+    // Call the fetch method which populates the RxList
+    await expenseCtrl.fetchCurrentMonthExpenseCategories().then((fetchedCategories) {
+      // Populate RxList manually here if fetchCategories() isn't used
+      expenseCtrl.currentMonthCategories.assignAll(fetchedCategories);
 
-    // After fetching is complete, get categories from the controller's categoryList
-    setState(() {
-      // Convert Category objects to strings, handling null values
-      _allItems = categoryController.categoryList
-          .map((category) => category.name ?? "Unnamed Category")
-          .toList();
-      _filteredItems = _allItems;
+      if (fetchedCategories.isNotEmpty) {
+        setState(() {
+          _allItems = fetchedCategories.map((cat) => cat['category'] ?? '').toList();
+          _filteredItems = _allItems;
+        });
+      }
     });
   }
+
+
 
   // Filter categories based on the search query
   void _filterSearchResults(String query) {
     setState(() {
       _filteredItems = _allItems
-          .where((category) => category.toLowerCase().contains(query.toLowerCase()))
+          .where((category) =>
+          category.toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
   }
@@ -54,9 +56,7 @@ class _SearchScreenState extends State<SearchScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const SizedBox(height: 40,),
-
-            // Search title
+            const SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -66,9 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 )
               ],
             ),
-            const SizedBox(height: 40,),
-
-            // Search bar
+            const SizedBox(height: 40),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
@@ -81,13 +79,12 @@ class _SearchScreenState extends State<SearchScreen> {
                   hintText: "Search...",
                   prefixIcon: Icon(Icons.search),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                  contentPadding:
+                  EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 ),
               ),
             ),
             const SizedBox(height: 10),
-
-            // Display the filtered categories
             Expanded(
               child: _filteredItems.isNotEmpty
                   ? ListView.builder(

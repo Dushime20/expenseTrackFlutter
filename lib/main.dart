@@ -6,8 +6,10 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/controller/budgetController.dart';
-import 'package:untitled/controller/categoryController.dart';
+import 'package:untitled/controller/expense_controller.dart';
+
 import 'package:untitled/controller/home_controller.dart';
+import 'package:untitled/controller/spending_controller.dart';
 import 'package:untitled/firebase_option.dart';
 import 'package:untitled/view/login/welcome_view.dart';
  
@@ -28,7 +30,9 @@ void main() async{
 
   //register controller
    Get.put(HomeController());
-   Get.put(CategoryController());
+   Get.put(SpendingController());
+   Get.put(ExpenseController());
+
    Get.put(BudgetController());
    runApp(const MyApp());
   // runApp(

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/controller/budgetController.dart';
-import 'package:untitled/controller/categoryController.dart';
+
 
 import '../../controller/app_initialization_controller.dart';
 
@@ -16,8 +16,8 @@ class AddBudgetScreen extends StatefulWidget {
 }
 
 class _AddBudgetScreenState extends State<AddBudgetScreen> {
-  final CategoryController categoryCtrl = Get.find();
-  final BudgetController budgetCtrl = Get.find();
+
+  final BudgetController budgetCtrl = Get.put(BudgetController());
 
   DateTime? startDate;
   DateTime? endDate;
@@ -25,24 +25,50 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
   String? selectedCategoryName;
   String? selectedCategoryId;
 
+  //Added loading flag
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
-    categoryCtrl.fetchCategory();
+
   }
 
   void handleSubmit() async {
-    if (selectedCategoryId == null || startDate == null || endDate == null) {
-      Get.snackbar("Error", "All fields are required");
+    if (startDate == null || endDate == null) {
+      Get.snackbar("Error", "Start and end dates are required",
+          colorText: TColor.secondary);
       return;
     }
 
-    await budgetCtrl.addBudget(
-      categoryId: selectedCategoryId!,
-      startDate: startDate!,
-      endDate: endDate!,
-    );
+    if (budgetCtrl.amountCtrl.text.trim().isEmpty) {
+      Get.snackbar("Error", "Please enter an amount",
+          colorText: TColor.secondary);
+      return;
+    }
+    // Start loading
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Pass selected dates to the controller before adding the budget
+    budgetCtrl.selectedStartDate.value = startDate;
+    budgetCtrl.selectedEndDate.value = endDate;
+
+    final isAdded = await budgetCtrl.addBudget();
+
+    // Stop loading
+    setState(() {
+      _isLoading = false;
+    });
+    if (isAdded) {
+      Get.snackbar("Success", "Budget added successfully",
+          colorText: TColor.line);
+      Navigator.pop(context);
+    }
   }
+
+
 
   Future<void> pickStartDate() async {
     final DateTime? picked = await showDatePicker(
@@ -99,30 +125,7 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              Obx(() {
-                return DropdownButtonFormField<String>(
-                  value: selectedCategoryName,
-                  items: categoryCtrl.categoryList.map((category) {
-                    return DropdownMenuItem<String>(
-                      value: category.name ?? '',
-                      child: Text(category.name ?? ''),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedCategoryName = value;
-                      final selected = categoryCtrl.categoryList
-                          .firstWhereOrNull((c) => c.name == value);
-                      selectedCategoryId = selected?.id;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    labelText: "Select Category",
-                    labelStyle: TextStyle(color: TColor.gray60),
-                    border: const OutlineInputBorder(),
-                  ),
-                );
-              }),
+
               const SizedBox(height: 15),
               TextField(
                 controller: budgetCtrl.amountCtrl,
@@ -156,11 +159,20 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
               ),
               const SizedBox(height: 30),
               ElevatedButton(
-                onPressed: handleSubmit,
+                onPressed: _isLoading ? null : handleSubmit,
                 style: ElevatedButton.styleFrom(
                     backgroundColor: TColor.line,
                     minimumSize: const Size.fromHeight(50)),
-                child: const Text("Save Budget"),
+                child: _isLoading
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+                    : const Text("Save Budget"),
               )
             ],
           ),

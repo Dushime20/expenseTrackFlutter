@@ -71,7 +71,7 @@ class _SignInViewState extends State<SignInView> {
 
       /// Now that login succeeded, fetch all the data
       final appInitController = Get.put(AppInitializationController());
-      appInitController.initialize();
+      await appInitController.initialize();
 
       //print("fetched data");
       Get.snackbar(
