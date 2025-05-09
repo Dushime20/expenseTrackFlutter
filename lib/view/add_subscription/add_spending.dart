@@ -188,7 +188,7 @@ class _AddSpendingViewState extends State<AddSpendingView> {
 
               // Dropdown for selecting category
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20,),
                 child: Obx(() {
                   final List<Map<String, String>> categories = expenseCtrl.currentMonthCategories;
 
@@ -200,9 +200,25 @@ class _AddSpendingViewState extends State<AddSpendingView> {
 
                   return DropdownButtonFormField<String>(
                     decoration: InputDecoration(
-                      labelText: "Select Category",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      labelText: "select category",
+                      labelStyle: TextStyle(color: TColor.gray60),
+                      filled: true,
+                      fillColor: Colors.white,
+
+
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5),
+                        borderSide: BorderSide(color: TColor.gray10),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5),
+                        borderSide: BorderSide(color: TColor.gray10),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5),
+                        borderSide: BorderSide(color: TColor.gray10, width: 1),
+                      ),
                     ),
                     value: selectedCategory,
                     items: categories.map((categoryMap) {

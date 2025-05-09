@@ -141,6 +141,16 @@ class HomeController extends GetxController{
     }
   }
 
+  Future<Map<String, dynamic>?> getIncomeById(String id) async {
+    final doc = await incomeCollection.doc(id).get();
+    if (doc.exists) {
+      return doc.data() as Map<String, dynamic>;
+    }
+    return null;
+  }
+
+
+
 
 
 

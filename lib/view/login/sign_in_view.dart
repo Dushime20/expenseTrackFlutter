@@ -138,33 +138,33 @@ class _SignInViewState extends State<SignInView> {
                         obscureText: true),
                     const SizedBox(height: 20),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              isRemember = !isRemember;
-                            });
-                          },
-                          child: Row(
-                            children: [
-                              Icon(
-                                isRemember
-                                    ? Icons.check_box
-                                    : Icons.check_box_outline_blank_rounded,
-                                size: 15,
-                                color: TColor.gray50,
-                              ),
-                              Text(
-                                "Remember me",
-                                style: TextStyle(
-                                  color: TColor.gray50,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        // TextButton(
+                        //   onPressed: () {
+                        //     setState(() {
+                        //       isRemember = !isRemember;
+                        //     });
+                        //   },
+                        //   child: Row(
+                        //     children: [
+                        //       Icon(
+                        //         isRemember
+                        //             ? Icons.check_box
+                        //             : Icons.check_box_outline_blank_rounded,
+                        //         size: 15,
+                        //         color: TColor.gray50,
+                        //       ),
+                        //       Text(
+                        //         "Remember me",
+                        //         style: TextStyle(
+                        //           color: TColor.gray50,
+                        //           fontSize: 14,
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   ),
+                        // ),
                         TextButton(
 
                           onPressed: () {

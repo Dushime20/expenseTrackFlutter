@@ -52,17 +52,6 @@ class _SettingsViewState extends State<SettingsView> {
               alignment: Alignment.center,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        icon: Image.asset("assets/img/back.png",
-                            width: 25, height: 25, color: TColor.gray30))
-                  ],
-                ),
-                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(

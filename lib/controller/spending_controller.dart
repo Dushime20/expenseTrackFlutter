@@ -141,6 +141,7 @@ class SpendingController extends GetxController {
       if (subAmount <= 0 || subName.isEmpty || selectedExpenseId == null || selectedExpenseId!.isEmpty) {
         Get.snackbar("Error", "Please provide valid spending details.",
             colorText: TColor.secondary);
+        print("Please provide valid spending details");
         return false;
       }
 

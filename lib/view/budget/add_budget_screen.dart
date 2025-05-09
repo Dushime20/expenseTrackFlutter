@@ -133,7 +133,23 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                 decoration: InputDecoration(
                   labelText: "Amount (Rwf)",
                   labelStyle: TextStyle(color: TColor.gray60),
-                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.white,
+
+
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10, width: 1),
+                  ),
                 ),
               ),
               const SizedBox(height: 15),

@@ -18,9 +18,8 @@ class _EditProfileViewState extends State<EditProfileView> {
   final AuthenticationService authService = AuthenticationService();
 
   final TextEditingController nameCtrl = TextEditingController();
-  final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController phoneCtrl = TextEditingController();
-  final TextEditingController currentPasswordCtrl = TextEditingController(); // 👈 NEW
+
 
   bool isLoading = false;
 
@@ -34,7 +33,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     final userData = await authService.getCurrentUserData();
     if (userData != null) {
       nameCtrl.text = userData['name'] ?? '';
-      emailCtrl.text = userData['email'] ?? '';
+
       phoneCtrl.text = userData['phone'] ?? '';
     }
   }
@@ -44,9 +43,9 @@ class _EditProfileViewState extends State<EditProfileView> {
 
     final isSuccess = await authService.updateCurrentUserData(
       name: nameCtrl.text.trim(),
-      email: emailCtrl.text.trim(),
+
       phone: phoneCtrl.text.trim(),
-      currentPassword: currentPasswordCtrl.text.trim(), // 👈 Pass password
+       // 👈 Pass password
     );
 
     setState(() => isLoading = false);
@@ -86,35 +85,54 @@ class _EditProfileViewState extends State<EditProfileView> {
               TextField(
                 controller: nameCtrl,
                 decoration: InputDecoration(
-                  labelText: "Name",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelText: "name",
+                  labelStyle: TextStyle(color: TColor.gray60),
+                  filled: true,
+                  fillColor: Colors.white,
+
+
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10, width: 1),
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailCtrl,
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
+
               const SizedBox(height: 16),
               TextField(
                 controller: phoneCtrl,
                 decoration: InputDecoration(
-                  labelText: "Phone",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelText: "phone",
+                  labelStyle: TextStyle(color: TColor.gray60),
+                  filled: true,
+                  fillColor: Colors.white,
+
+
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10, width: 1),
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: currentPasswordCtrl,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "enter new password",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
+
               const SizedBox(height: 30),
               PrimaryButton(title: "Save", onPress: saveProfile, color: TColor.white),
             ],

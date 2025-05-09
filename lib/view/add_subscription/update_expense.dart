@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:collection/collection.dart';
 
 import 'package:untitled/controller/expense_controller.dart';
 import 'package:untitled/controller/spending_controller.dart';
-
 import '../../common/color_extension.dart';
 import '../../common_widget/primary_button.dart';
 import '../../controller/app_initialization_controller.dart';
@@ -21,25 +21,36 @@ class _UpdateExpenseState extends State<UpdateExpenseView> {
   final SpendingController spendingCtrl = Get.put(SpendingController());
   final ExpenseController expenseCtrl = Get.put(ExpenseController());
 
-
   String? selectedCategory;
-  String? selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
-    // Optionally: Pre-fill fields if needed
+    fetchAndSetSpendingData();
+  }
+
+  Future<void> fetchAndSetSpendingData() async {
+    if (widget.id == null) return;
+
+    await spendingCtrl.fetchUserSpendings();
+    final spendingToEdit = spendingCtrl.spending
+        .firstWhereOrNull((item) => item['id'] == widget.id);
+
+    if (spendingToEdit != null) {
+      spendingCtrl.subNameCtrl.text = spendingToEdit['name'] ?? '';
+      spendingCtrl.subAmountCtrl.text =
+          spendingToEdit['amount']?.toString() ?? '';
+      selectedCategory = spendingToEdit['categoryId'];
+      spendingCtrl.selectedExpenseId = spendingToEdit['categoryId'];
+      setState(() {});
+    }
   }
 
   void handleSubmit() async {
-    if (spendingCtrl.subNameCtrl.text.trim().isEmpty) {
-      Get.snackbar("Error", "Please enter a description",
-          colorText: TColor.secondary);
-      return;
-    }
-
-    if (spendingCtrl.subAmountCtrl.text.trim().isEmpty) {
-      Get.snackbar("Error", "Please enter an amount",
+    if (spendingCtrl.subNameCtrl.text.trim().isEmpty ||
+        spendingCtrl.subAmountCtrl.text.trim().isEmpty ||
+        spendingCtrl.selectedExpenseId == null) {
+      Get.snackbar("Error", "Please fill in all fields",
           colorText: TColor.secondary);
       return;
     }
@@ -47,22 +58,20 @@ class _UpdateExpenseState extends State<UpdateExpenseView> {
     double? parsedAmount =
     double.tryParse(spendingCtrl.subAmountCtrl.text.trim());
     if (parsedAmount == null) {
-      Get.snackbar("Error", "Please enter a valid number for amount",
+      Get.snackbar("Error", "Enter a valid number for amount",
           colorText: TColor.secondary);
       return;
     }
 
-    final updateSpending = await spendingCtrl.updateSpending(widget.id ?? '');
-    if (updateSpending) {
-      Get.snackbar("Success", "Transaction updated successfully",
-          colorText: TColor.line);
+    final success = await spendingCtrl.updateSpending(widget.id ?? '');
+    if (success) {
+      Get.back(); // go back after update
 
       setState(() {
-        spendingCtrl.subNameCtrl.clear();
         spendingCtrl.subAmountCtrl.clear();
-        selectedCategoryId = null;
-        selectedCategory = null;
+        spendingCtrl.subNameCtrl.clear();
       });
+
     }
   }
 
@@ -72,83 +81,83 @@ class _UpdateExpenseState extends State<UpdateExpenseView> {
     appInitController.initialize();
 
     return Scaffold(
+      backgroundColor: TColor.back,
       appBar: AppBar(
         title: const Text("Update Your Spending"),
         backgroundColor: TColor.white,
         foregroundColor: TColor.gray70,
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const SizedBox(height: 20),
-
             // Category Dropdown
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-              child: Obx(() {
-                final List<Map<String, String>> categories =
-                    expenseCtrl.currentMonthCategories;
+            Obx(() {
+              final categories = expenseCtrl.currentMonthCategories;
 
-                if (categories.isEmpty) {
-                  return const Center(
-                    child: Text("No categories available, please add expense first"),
-                  );
-                }
+              if (categories.isEmpty) {
+                return const Text(
+                    "No categories available. Please add an expense first.");
+              }
 
-                return DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: "Select Category",
-                    border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              return DropdownButtonFormField<String>(
+                value: selectedCategory,
+                decoration: InputDecoration(
+                  labelText: "Select Category",
+                  labelStyle: TextStyle(color: TColor.gray60),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
                   ),
-                  value: selectedCategory,
-                  items: categories.map((categoryMap) {
-                    return DropdownMenuItem<String>(
-                      value: categoryMap['categoryId'],
-                      child: Text(categoryMap['category'] ?? ''),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedCategory = value;
-                      selectedCategoryId = value;
-                    });
-                  },
-                );
-              }),
-            ),
+                ),
+                items: categories.map((cat) {
+                  return DropdownMenuItem<String>(
+                    value: cat['categoryId'],
+                    child: Text(cat['category'] ?? ''),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedCategory = value;
+                    spendingCtrl.selectedExpenseId = value!; // ✅ Important
+                  });
+                },
+              );
+            }),
 
             const SizedBox(height: 20),
 
-            // Description
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextFormField(
-                controller: spendingCtrl.subNameCtrl,
-                decoration: InputDecoration(
-                  labelText: "Description",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            // Name Field
+            TextFormField(
+              controller: spendingCtrl.subNameCtrl,
+              decoration: InputDecoration(
+                labelText: "Name",
+                labelStyle: TextStyle(color: TColor.gray60),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide(color: TColor.gray10),
                 ),
               ),
             ),
 
             const SizedBox(height: 20),
 
-            // Amount
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextFormField(
-                controller: spendingCtrl.subAmountCtrl,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: "Amount",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            // Amount Field
+            TextFormField(
+              controller: spendingCtrl.subAmountCtrl,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: "Amount",
+                labelStyle: TextStyle(color: TColor.gray60),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide(color: TColor.gray10),
                 ),
               ),
             ),
@@ -156,13 +165,10 @@ class _UpdateExpenseState extends State<UpdateExpenseView> {
             const SizedBox(height: 30),
 
             // Submit Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: PrimaryButton(
-                title: "Update Spending",
-                onPress: handleSubmit,
-                color: TColor.white,
-              ),
+            PrimaryButton(
+              title: "Update Spending",
+              onPress: handleSubmit,
+              color: TColor.white,
             ),
           ],
         ),

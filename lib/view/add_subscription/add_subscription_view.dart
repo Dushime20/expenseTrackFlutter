@@ -10,6 +10,8 @@ import 'package:untitled/controller/home_controller.dart';
 import 'package:untitled/view/add_subscription/add_income.dart';
 import 'package:untitled/view/add_subscription/add_spending.dart';
 
+import '../../common_widget/segment_button.dart';
+
 
 
 class AddSubScriptionView extends StatefulWidget {
@@ -21,6 +23,7 @@ class AddSubScriptionView extends StatefulWidget {
 
 class _AddSubScriptionViewState extends State<AddSubScriptionView> {
 
+  bool isIncome = true;
   List subArr = [
     {"name": "Salary", "icon": "assets/img/money.jpg"},
     {"name": "House rent", "icon": "assets/img/house.jpeg"},
@@ -123,12 +126,12 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                             Row(
                               children: [
                                 Text(
-                                  "Set your expense",
+                                  "Set your expense category",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: TColor.gray80,
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.w700),
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
@@ -187,58 +190,99 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
              SizedBox(height: 20,),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16), // margin on both sides
-                child: Container(
-                  alignment: Alignment.center, // center content inside container
-                  padding: const EdgeInsets.all(10),
+                // child: Container(
+                //   alignment: Alignment.center, // center content inside container
+                //   padding: const EdgeInsets.all(10),
+                //   decoration: BoxDecoration(
+                //     color: TColor.back,
+                //     borderRadius: BorderRadius.circular(16),
+                //     border: Border.all(color: Colors.grey.shade300),
+                //   ),
+                //   child: Row(
+                //     mainAxisAlignment: MainAxisAlignment.center,
+                //     children: [
+                //       InkWell(
+                //         onTap: () {
+                //           Get.to(() => const AddSpendingView());
+                //         },
+                //         child: Container(
+                //           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                //           decoration: BoxDecoration(
+                //             border: Border.all(color: TColor.line),
+                //             color: TColor.back,
+                //             borderRadius: BorderRadius.circular(16),
+                //           ),
+                //           child: const Text(
+                //             "Add your subCategory",
+                //             style: TextStyle(
+                //               color: Colors.black87,
+                //               fontSize: 12,
+                //               fontWeight: FontWeight.w600,
+                //             ),
+                //           ),
+                //         ),
+                //       ),
+                //       const SizedBox(width: 20),
+                //       InkWell(
+                //         onTap: () {
+                //           Get.to(() => const AddIncomeView());
+                //         },
+                //         child: Container(
+                //           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                //           decoration: BoxDecoration(
+                //             border: Border.all(color: TColor.line),
+                //             color: TColor.back,
+                //             borderRadius: BorderRadius.circular(16),
+                //           ),
+                //           child: const Text(
+                //             "Add your income",
+                //             style: TextStyle(
+                //               color: Colors.black87,
+                //               fontSize: 12,
+                //               fontWeight: FontWeight.w600,
+                //             ),
+                //           ),
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
+
+                child:  Container(
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 10),
+                  height: 45,
+                  width: 250,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade300),
+                    color: TColor.white,
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      InkWell(
-                        onTap: () {
-                          Get.to(() => const AddSpendingView());
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: TColor.line),
-                            color: TColor.back,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Text(
-                            "Add your subCategory",
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                      Expanded(
+                        child: SegmentButton(
+                          title: 'Add subCategory',
+                          onPress: () {
+                            setState(() {
+                              Get.to(() => const AddSpendingView());
+                              isIncome = false;
+                            });
+                          },
+                          isActive: !isIncome,
+
                         ),
                       ),
-                      const SizedBox(width: 20),
-                      InkWell(
-                        onTap: () {
-                          Get.to(() => const AddIncomeView());
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: TColor.line),
-                            color: TColor.back,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Text(
-                            "Add your income",
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                      Expanded(
+                        child: SegmentButton(
+                          title: 'add Income',
+                          onPress: () {
+                            setState(() {
+                              Get.to(() => const AddIncomeView());
+                              isIncome = true;
+                            });
+                          },
+                          isActive: isIncome,
                         ),
                       ),
                     ],

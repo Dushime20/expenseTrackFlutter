@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../common/color_extension.dart';
 import '../../common_widget/primary_button.dart';
 import '../../controller/app_initialization_controller.dart';
-
 import '../../controller/home_controller.dart';
 
 class UpdateIncomeView extends StatefulWidget {
@@ -16,22 +15,34 @@ class UpdateIncomeView extends StatefulWidget {
 }
 
 class _UpdateIncomeViewState extends State<UpdateIncomeView> {
+  final HomeController homeCtrl = Get.put(HomeController());
 
-final HomeController homeCtrl = Get.put(HomeController());
+  double amountVal = 0.0;
+  bool isLoading = true;
 
-double amountVal = 0.0;
-String? selectedCategoryName;
-String? selectedCategoryId;
+  @override
+  void initState() {
+    super.initState();
+    fetchIncomeData();
+  }
 
-@override
-void initState() {
-  super.initState();
+  void fetchIncomeData() async {
+    if (widget.id == null) return;
 
-}
+    final data = await homeCtrl.getIncomeById(widget.id!);
+    if (data != null) {
+      homeCtrl.descriptionCtrl.text = data['name'] ?? '';
+      homeCtrl.amountCtrl.text = (data['amount']?.toString() ?? '0.0');
+    } else {
+      Get.snackbar("Error", "Income not found", colorText: TColor.secondary);
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   void handleUpdate() async {
-
-
     double? amount = double.tryParse(homeCtrl.amountCtrl.text.trim());
     if (amount == null) {
       Get.snackbar("Error", "Invalid amount entered",
@@ -40,10 +51,9 @@ void initState() {
     }
 
     await homeCtrl.updateIncome(
-
-      incomeId: widget.id!, // Use `widget.id` here
-      newName: homeCtrl.descriptionCtrl.text.trim(), // Convert to string
-      newAmount: amount, // Use parsed double
+      incomeId: widget.id!,
+      newName: homeCtrl.descriptionCtrl.text.trim(),
+      newAmount: amount,
     );
 
     Get.snackbar("Success", "Income updated successfully",
@@ -53,77 +63,103 @@ void initState() {
       amountVal = 0.0;
       homeCtrl.descriptionCtrl.clear();
       homeCtrl.amountCtrl.clear();
-
     });
   }
 
   @override
-Widget build(BuildContext context) {
-
-    // Ensure initialization happens when the screen is built
+  Widget build(BuildContext context) {
     final appInitController = Get.put(AppInitializationController());
     appInitController.initialize();
 
-  return Scaffold(
-    appBar: AppBar(
-      title: const Text("Update Income"),
-      backgroundColor: TColor.white,
-      foregroundColor: TColor.gray80,
-    ),
-    body: SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-
-
-          const SizedBox(height: 20),
-
-          // Description
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: TextFormField(
-              controller: homeCtrl.descriptionCtrl,
-              decoration: InputDecoration(
-                labelText: "Description",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Amount
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: TextFormField(
-              controller: homeCtrl.amountCtrl,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: "Amount",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 30),
-
-          // Custom Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: PrimaryButton(
-              title: "Update Income",
-              onPress: ()  {
-                handleUpdate();
-              },
-              color: TColor.white,
-            ),
-          ),
-        ],
+    return Scaffold(
+      backgroundColor: TColor.back,
+      appBar: AppBar(
+        title: const Text("Update Income"),
+        backgroundColor: TColor.white,
+        foregroundColor: TColor.gray80,
       ),
-    ),
-  );
-}
-}
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
 
+            // Description
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextFormField(
+                controller: homeCtrl.descriptionCtrl,
+                decoration: InputDecoration(
+                  labelText: "Description",
+                  labelStyle: TextStyle(color: TColor.gray60),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide:
+                    BorderSide(color: TColor.gray10, width: 1),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Amount
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextFormField(
+                controller: homeCtrl.amountCtrl,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: "Amount",
+                  labelStyle: TextStyle(color: TColor.gray60),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide(color: TColor.gray10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide:
+                    BorderSide(color: TColor.gray10, width: 1),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            // Update Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: PrimaryButton(
+                title: "Update Income",
+                onPress: handleUpdate,
+                color: TColor.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

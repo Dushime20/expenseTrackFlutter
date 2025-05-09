@@ -113,9 +113,6 @@ class AuthenticationService {
   Future<bool> updateCurrentUserData({
     String? name,
     String? phone,
-    String? email,
-    String? currentPassword,
-    String? newPassword,
   }) async {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -126,45 +123,6 @@ class AuthenticationService {
       // Update name and phone if provided
       if (name != null) updatedData['name'] = name;
       if (phone != null) updatedData['phone'] = phone;
-
-      // Update email if provided and different from current email
-      if (email != null && email != currentUser.email) {
-        if (currentPassword == null || currentPassword.isEmpty) {
-          Get.snackbar("Authentication Required", "Please enter your current password to change your email.");
-          return false;
-        }
-
-        // Reauthenticate with current email and password
-        final credential = EmailAuthProvider.credential(
-          email: currentUser.email!,
-          password: currentPassword,
-        );
-
-        await currentUser.reauthenticateWithCredential(credential);
-
-        // Update the email
-        await currentUser.updateEmail(email);
-        updatedData['email'] = email;
-      }
-
-      // Update password if newPassword is provided
-      if (newPassword != null && newPassword.isNotEmpty) {
-        if (currentPassword == null || currentPassword.isEmpty) {
-          Get.snackbar("Authentication Required", "Please enter your current password to change your password.");
-          return false;
-        }
-
-        // Reauthenticate with current email and password
-        final credential = EmailAuthProvider.credential(
-          email: currentUser.email!,
-          password: currentPassword,
-        );
-
-        await currentUser.reauthenticateWithCredential(credential);
-
-        // Update the password
-        await currentUser.updatePassword(newPassword);
-      }
 
       // Update Firestore user profile if there is any change
       if (updatedData.isNotEmpty) {

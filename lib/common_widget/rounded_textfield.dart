@@ -29,28 +29,34 @@ class RoundedTextField extends StatelessWidget {
             height: 48,
             width: double.infinity,
             decoration: BoxDecoration(
-              border: Border.all(color: TColor.gray70),
+              border: Border.all(color: TColor.gray10),
               color: TColor.white,
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(5),
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: TextField(
-                controller: controller,
-                style: TextStyle(
-                  color: TColor.gray,
-                  fontSize: 16,
-                ),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: "Type here .....",
-                  hintStyle: TextStyle(color: Colors.grey),
-                ),
-                keyboardType: keyboardType,
-                obscureText: obscureText,
+            alignment: Alignment.center,
+            child: TextField(
+
+              controller: controller,
+              style: TextStyle(
+                color: TColor.gray,
+                fontSize: 16,
               ),
+              decoration: const InputDecoration(
+                isCollapsed: true, // Avoid extra padding
+                contentPadding: EdgeInsets.symmetric(vertical: 14,horizontal: 8),
+                border: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                hintText: "Type here .....",
+                hintStyle: TextStyle(color: Colors.grey),
+
+              ),
+              keyboardType: keyboardType,
+              obscureText: obscureText,
             ),
           ),
+
 
 
         ],

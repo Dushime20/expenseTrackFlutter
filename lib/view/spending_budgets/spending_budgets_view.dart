@@ -6,9 +6,11 @@ import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/common_widget/budgets_row.dart';
 import 'package:untitled/common_widget/custom_arc_180_painter.dart';
 import 'package:untitled/controller/budgetController.dart';
+import 'package:untitled/view/add_subscription/add_spending.dart';
 import 'package:untitled/view/budget/add_budget_screen.dart';
 
 import '../../controller/expense_controller.dart';
+import '../add_subscription/add_subscription_view.dart';
 import '../budget/update_budget_screen.dart';
 import '../settings/settings_view.dart';
 import 'package:get/get.dart';
@@ -27,7 +29,9 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
   Widget build(BuildContext context) {
     var media = MediaQuery.sizeOf(context);
     return GetBuilder<BudgetController>(builder: (ctrl) {
-      var bObj = ctrl.budgetList.first;
+      final bool hasBudget = ctrl.budgetList.isNotEmpty;
+      final bObj = hasBudget ? ctrl.budgetList.first : null;
+
       return Scaffold(
         backgroundColor: TColor.back,
         body: SingleChildScrollView(
@@ -154,7 +158,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                                 PopupMenuButton<String>(
                                   icon: Icon(Icons.more_vert, color: TColor.gray80),
                                   onSelected: (value) {
-                                    if (value == 'update') {
+                                    if (value == 'update' && bObj != null) {
                                       DateTime _toDate(dynamic value) {
                                         if (value is Timestamp) return value.toDate();
                                         if (value is DateTime) return value;
@@ -170,6 +174,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                                         initialStartDate: startDate,
                                         initialEndDate: endDate,
                                       ));
+
                                     } else if (value == 'delete') {
                                       showDialog(
                                         context: context,
@@ -188,7 +193,9 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                                                 child: const Text("Delete", style: TextStyle(color: Colors.red)),
                                                 onPressed: () {
                                                   Navigator.of(context).pop(); // Close the dialog first
-                                                  ctrl.deleteBudget(bObj['id'] ?? ''); // Call the delete function
+                                                  if (bObj != null) {
+                                                    ctrl.deleteBudget(bObj['id'] ?? '');
+                                                  }// Call the delete function
                                                 },
                                               ),
                                             ],
@@ -270,7 +277,9 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           InkWell(
-                            onTap: () {},
+                            onTap: () {
+                              Get.to(()=> const AddSubScriptionView());
+                            },
                             child: Text(
                               "Add new category ",
                               style: TextStyle(
