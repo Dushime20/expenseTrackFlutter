@@ -33,7 +33,7 @@ class ExpenseController extends GetxController{
     fetchCurrentMonthExpenses();
     loadExpenseStatus();
   }
-  void fetchCategories() async {
+  Future<void>      fetchCategories() async {
     final fetchedCategories = await fetchCurrentMonthExpenseCategories();
     currentMonthCategories.assignAll(fetchedCategories);
     print("fetched category, ${fetchedCategories}");// KEEP RxList intact
@@ -134,7 +134,7 @@ class ExpenseController extends GetxController{
       Get.snackbar("Success", "Expense added successfully", colorText: TColor.line);
 
       await fetchCurrentMonthExpenses();
-      await fetchCurrentMonthExpenseCategories();
+      await fetchCategories();
 
       await loadExpenseStatus();
       return true;
@@ -244,58 +244,82 @@ class ExpenseController extends GetxController{
 
   //fetch current month expense status for showing remaining amount on category after removing spending subcategory on that category Id
   Future<List<Map<String, dynamic>>> fetchExpenseStatusForCurrentMonth() async {
-    final user = auth.currentUser;
-    if (user == null) return [];
+    try {
+      final user = auth.currentUser;
+      if (user == null) {
+        print("User not logged in");
+        return [];
+      }
 
-    final now = DateTime.now();
-    final startOfMonth = DateTime(now.year, now.month, 1);
-    final endOfMonth = DateTime(now.year, now.month + 1, 0);
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0);
 
-    // Step 1: Fetch current month's expenses for the user
-    final expenseSnapshot = await expenseCollection
-        .where('userId', isEqualTo: user.uid)
-        .where('date', isGreaterThanOrEqualTo: startOfMonth)
-        .where('date', isLessThanOrEqualTo: endOfMonth)
-        .get();
-
-    final List<Map<String, dynamic>> result = [];
-
-    // Step 2: For each expense, fetch its related spendings
-    for (var expenseDoc in expenseSnapshot.docs) {
-      final expenseData = expenseDoc.data() as Map<String, dynamic>?;
-
-      if (expenseData == null) continue; // Skip if null
-
-      final expenseId = expenseData['id'];
-      final expenseAmount = (expenseData['amount'] ?? 0).toDouble();
-      final category = expenseData['category'] ?? '';
-
-      final spendingSnapshot = await spendingCollection
+      final expenseSnapshot = await expenseCollection
           .where('userId', isEqualTo: user.uid)
-          .where('expenseId', isEqualTo: expenseId)
           .where('date', isGreaterThanOrEqualTo: startOfMonth)
           .where('date', isLessThanOrEqualTo: endOfMonth)
           .get();
 
-      double usedAmount = 0;
-      for (var spendingDoc in spendingSnapshot.docs) {
-        final spendingData = spendingDoc.data() as Map<String, dynamic>?;
-        usedAmount += (spendingData?['amount'] ?? 0).toDouble();
+      final List<Map<String, dynamic>> result = [];
+
+      for (var expenseDoc in expenseSnapshot.docs) {
+        final expenseData = expenseDoc.data() as Map<String, dynamic>?;
+
+        if (expenseData == null) continue;
+
+        final expenseId = expenseDoc.id;
+        final expenseAmount = (expenseData['amount'] ?? 0).toDouble();
+        final category = expenseData['category'] ?? '';
+
+        final spendingSnapshot = await spendingCollection
+            .where('userId', isEqualTo: user.uid)
+            .where('expenseId', isEqualTo: expenseId)
+            .where('date', isGreaterThanOrEqualTo: startOfMonth)
+            .where('date', isLessThanOrEqualTo: endOfMonth)
+            .get();
+
+        double usedAmount = 0;
+        List<Map<String, dynamic>> spendings = [];
+
+        for (var spendingDoc in spendingSnapshot.docs) {
+          final spendingData = spendingDoc.data() as Map<String, dynamic>?;
+
+          if (spendingData != null) {
+            final amount = (spendingData['amount'] ?? 0).toDouble();
+            usedAmount += amount;
+
+            spendings.add({
+              'name': spendingData['name'] ?? '', // Adjust if your field is 'title' or 'description'
+              'amount': amount,
+            });
+          }
+        }
+
+        double remaining = expenseAmount - usedAmount;
+
+        result.add({
+          'expenseId': expenseId,
+          'category': category,
+          'budget': expenseAmount,
+          'used': usedAmount,
+          'remaining': remaining,
+          'spendings': spendings,
+        });
       }
 
-      double remaining = expenseAmount - usedAmount;
+      for (var item in result) {
+        print("CATEGORY: ${item['category']}");
+        print("SPENDINGS: ${item['spendings']}");
+      }
 
-      result.add({
-        'expenseId': expenseId,
-        'category': category,
-        'budget': expenseAmount,
-        'used': usedAmount,
-        'remaining': remaining,
-      });
+      return result;
+    } catch (e) {
+      print("Error in fetchExpenseStatusForCurrentMonth: $e");
+      return [];
     }
-
-    return result;
   }
+
 
 
 

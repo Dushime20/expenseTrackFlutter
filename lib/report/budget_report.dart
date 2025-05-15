@@ -59,13 +59,13 @@ class BudgetPdfGenerator {
         build: (context) => [
           pw.Header(
             level: 0,
-            child: pw.Text("User Budget Report", style: pw.TextStyle(font: ttf, fontSize: 24)),
+            child: pw.Text("User Monthly Budget Report", style: pw.TextStyle(font: ttf, fontSize: 24)),
           ),
           pw.Table.fromTextArray(
-            headers: ['Category ID', 'Amount', 'Start Date', 'End Date'],
+            headers: [ 'Amount', 'Start Date', 'End Date'],
             data: budgetCtrl.budgetList.map((budget) {
               return [
-                budget['categoryId'] ?? '',
+
                 '${budget['amount']} RWF',
                 formatter.format((budget['startDate'] as Timestamp).toDate()),
                 formatter.format((budget['endDate'] as Timestamp).toDate()),

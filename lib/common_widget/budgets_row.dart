@@ -78,6 +78,44 @@ class BudgetsRow extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 6),
+
+                // Spendings List (Scrollable vertically if too long)
+                Container(
+                  constraints: BoxConstraints(maxHeight: 80), // Limit height to prevent overflow
+                  child:ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: (bObj["spendings"] as List?)?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      final spending = (bObj["spendings"] as List)[index] ?? {};
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              spending["name"] ?? "",
+                              style: TextStyle(
+                                color: TColor.gray80,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              "${(spending["amount"] as num?)?.toStringAsFixed(0) ?? '0'} Rwf",
+                              style: TextStyle(
+                                color: TColor.gray60,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
+                ),
+
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
                   backgroundColor: TColor.gray60,
@@ -87,6 +125,7 @@ class BudgetsRow extends StatelessWidget {
                 ),
               ],
             ),
+
           ),
         ),
       );

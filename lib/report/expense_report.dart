@@ -56,7 +56,7 @@ class ExpensePdfGenerator {
           pw.Header(
             level: 0,
             child: pw.Text(
-              "User Expense Report",
+              "User Monthly Expense Report",
               style: pw.TextStyle(font: ttf, fontSize: 24),
             ),
           ),

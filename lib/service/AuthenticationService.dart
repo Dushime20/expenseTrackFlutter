@@ -202,6 +202,7 @@ class AuthenticationService {
         res['message'] = e.message ?? "An unknown error occurred";
       }
     } catch (e) {
+      print("error was occurred is:, ${e.toString()}");
       res['message'] = e.toString();
     }
 

@@ -11,67 +11,102 @@ class ArcValueModel {
 }
 
 class CustomArc180Painter extends CustomPainter {
-  final double start;
-  final double end;
+  final double totalBudget;
+  final double usedBudget;
   final double width;
   final double bgWidth;
   final double blurWidth;
-  final double space;
-  final List<ArcValueModel> drwArcs;
 
-  CustomArc180Painter(
-      { required this.drwArcs, this.start = 0, this.end = 180, this.space = 5, this.width = 15, this.bgWidth = 10,  this.blurWidth = 4});
+  CustomArc180Painter({
+    required this.totalBudget,
+    required this.usedBudget,
+    this.width = 15,
+    this.bgWidth = 10,
+    this.blurWidth = 4,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    var rect = Rect.fromCircle(
-        center: Offset(size.width / 2, size.height ),
-        radius: size.width / 2);
+    final center = Offset(size.width / 2, size.height);
+    final radius = size.width / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
 
-    
-    Paint backgroundPaint = Paint();
-    backgroundPaint.color = TColor.gray60.withOpacity(0.5);
-    backgroundPaint.style = PaintingStyle.stroke;
-    backgroundPaint.strokeWidth = bgWidth;
-    backgroundPaint.strokeCap = StrokeCap.round;
+    // Paint for background arc
+    final bgPaint = Paint()
+      ..color = TColor.gray60.withOpacity(0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = bgWidth
+      ..strokeCap = StrokeCap.round;
 
-    var startVal = 180.0 + start;
-    var drawStart = startVal;
-    canvas.drawArc(
-        rect, radians(startVal), radians(180), false, backgroundPaint);
+    // Draw full 180° background arc
+    canvas.drawArc(rect, radians(180), radians(180), false, bgPaint);
 
-    for (var arcObj in drwArcs) {
+    if (usedBudget <= 0 || totalBudget <= 0) return;
 
-     
-      Paint activePaint = Paint();
-      activePaint.color = arcObj.color;
-      activePaint.style = PaintingStyle.stroke;
-      activePaint.strokeWidth = width;
-      activePaint.strokeCap = StrokeCap.round;
+    final usedPercent = (usedBudget / totalBudget).clamp(0.0, 1.0);
+    final usedDegrees = 180 * usedPercent;
+    final safeLimit = 0.75;
+    final safeDegrees = 180 * safeLimit;
 
-      Paint shadowPaint = Paint()
-        ..color = arcObj.color.withOpacity(0.3)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = width + blurWidth
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    double startAngle = radians(180); // Starting from 180°
 
+    if (usedPercent <= safeLimit) {
+      // Paint full green arc
+      _drawArcSegment(
+        canvas,
+        rect,
+        startAngle,
+        radians(usedDegrees),
+        TColor.line,
+      );
+    } else {
+      // Green segment up to 75%
+      _drawArcSegment(
+        canvas,
+        rect,
+        startAngle,
+        radians(safeDegrees),
+        TColor.line,
+      );
 
-      //Draw Shadow Arc
-      Path path = Path();
-      path.addArc(rect, radians(drawStart), radians(arcObj.value - space ));
-      canvas.drawPath(path, shadowPaint);
+      // Red segment for overflow (after 75%)
+      final redStartAngle = startAngle + radians(safeDegrees);
+      final redSweepAngle = radians(usedDegrees - safeDegrees);
 
-      canvas.drawArc(rect, radians(drawStart), radians(arcObj.value  - space ), false, activePaint);
-
-      drawStart = drawStart + arcObj.value + space;
+      _drawArcSegment(
+        canvas,
+        rect,
+        redStartAngle,
+        redSweepAngle,
+        TColor.secondary,
+      );
     }
-    
-    
+  }
+
+  void _drawArcSegment(Canvas canvas, Rect rect, double start, double sweep, Color color) {
+    final shadowPaint = Paint()
+      ..color = color.withOpacity(0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width + blurWidth
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+
+    final arcPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round;
+
+    final path = Path()..addArc(rect, start, sweep);
+    canvas.drawPath(path, shadowPaint);
+    canvas.drawArc(rect, start, sweep, false, arcPaint);
   }
 
   @override
-  bool shouldRepaint(CustomArc180Painter oldDelegate) => false;
+  bool shouldRepaint(CustomArc180Painter oldDelegate) =>
+      oldDelegate.usedBudget != usedBudget ||
+          oldDelegate.totalBudget != totalBudget;
 
   @override
   bool shouldRebuildSemantics(CustomArc180Painter oldDelegate) => false;
 }
+

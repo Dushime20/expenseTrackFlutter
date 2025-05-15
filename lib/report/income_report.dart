@@ -37,7 +37,7 @@ class IncomePdfGenerator {
           build: (context) => [
             pw.Header(
               level: 0,
-              child: pw.Text("User Income Report", style: pw.TextStyle(font: ttf, fontSize: 24)),
+              child: pw.Text("User Monthly Income Report", style: pw.TextStyle(font: ttf, fontSize: 24)),
             ),
             pw.Table.fromTextArray(
               headers: ['Description', 'Amount', 'Date'],

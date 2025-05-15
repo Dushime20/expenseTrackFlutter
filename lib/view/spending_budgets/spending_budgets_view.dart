@@ -62,14 +62,8 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                     height: media.width * 0.30,
                     child: CustomPaint(
                       painter: CustomArc180Painter(
-                        drwArcs: [
-                          ArcValueModel(color: TColor.line, value: 20),
-                          ArcValueModel(color: TColor.line, value: 45),
-                          ArcValueModel(color: TColor.line, value: 70),
-                        ],
-                        end: 50,
-                        width: 12,
-                        bgWidth: 8,
+                        totalBudget: ctrl.totalBudgetAmount.value,
+                        usedBudget: ctrl.usedBudgetAmount.value,
                       ),
                     ),
                   ),
@@ -220,7 +214,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
                             ),
                             const SizedBox(height: 30),
                             Text(
-                              "Your budgets are on tack 👍",
+                              "Your budgets are on track 👍",
                               style: TextStyle(
                                   color: TColor.gray60,
                                   fontSize: 14,

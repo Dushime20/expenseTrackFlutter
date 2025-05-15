@@ -27,7 +27,9 @@ class HomeController extends GetxController{
 
   List<Expense> expense = [];
 
-  List<Income> income =[];
+  RxList<Income> income = <Income>[].obs;
+
+
 
   void updateAmount(double newVal) {
     amountVal = newVal;
@@ -40,6 +42,7 @@ class HomeController extends GetxController{
 
 
    await calculateMonthlyIncome();
+   await fetchIncome();
 
 
 
@@ -154,7 +157,7 @@ class HomeController extends GetxController{
 
 
 
-  fetchIncome() async {
+  Future<void>fetchIncome() async {
     try {
       final currentUser = auth.currentUser;
       if (currentUser == null) {

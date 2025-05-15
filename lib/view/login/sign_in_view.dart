@@ -90,6 +90,8 @@ class _SignInViewState extends State<SignInView> {
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
       );
+      print("error occurred here");
+      print(res['message']);
     }
   }
 

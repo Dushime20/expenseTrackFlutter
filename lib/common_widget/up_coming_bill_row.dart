@@ -29,6 +29,7 @@ class UpcomingBillRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: GestureDetector(
         onTap: onPressed,
+
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           height: 64,
@@ -36,6 +37,7 @@ class UpcomingBillRow extends StatelessWidget {
             color: TColor.back,
             borderRadius: BorderRadius.circular(4),
           ),
+
           child: Row(
             children: [
               Container(
