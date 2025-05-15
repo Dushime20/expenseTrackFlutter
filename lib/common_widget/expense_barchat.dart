@@ -128,14 +128,27 @@ class ExpenseBarChart extends StatelessWidget {
                                   final tappedCategory = data[tappedIndex];
                                   Get.dialog(
                                     AlertDialog(
-                                      title: Text("Spendings: ${tappedCategory['category']}"),
+                                      backgroundColor: Colors.transparent,
+
                                       content: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: (tappedCategory['spendings'] as List<dynamic>)
                                             .map((spending) {
-                                          return ListTile(
-                                            title: Text(spending['name']),
-                                            trailing: Text("RWF ${spending['amount']}"),
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 4.0), // Optional: space between rows
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  spending['name'],
+                                                  style: const TextStyle(color: Colors.white),
+                                                ),
+                                                Text(
+                                                  "RWF ${spending['amount']}",
+                                                  style: const TextStyle(color: Colors.white),
+                                                ),
+                                              ],
+                                            ),
                                           );
                                         }).toList(),
                                       ),

@@ -67,7 +67,7 @@ class _HomeViewState extends State<HomeView> {
                           width: media.width * 0.7,
                           height: media.width * 0.6,
                           child: CustomPaint(
-                            painter: CustomArcPainter(end: 220),
+                            painter: CustomArcPainter(end: 0),
                           ),
                         ),
                         Padding(

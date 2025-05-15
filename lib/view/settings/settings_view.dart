@@ -66,11 +66,12 @@ class _SettingsViewState extends State<SettingsView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  "assets/img/u1.png",
-                  width: 70,
-                  height: 70,
-                )
+
+                Icon(
+                  Icons.person,
+                  size: 70,
+                  color: TColor.gray50, // Optional: change color to match your theme
+                ),
               ],
             ),
             const SizedBox(height: 8),
