@@ -127,32 +127,36 @@ class ExpenseBarChart extends StatelessWidget {
                                 if (tappedIndex >= 0 && tappedIndex < data.length) {
                                   final tappedCategory = data[tappedIndex];
                                   Get.dialog(
-                                    AlertDialog(
-                                      backgroundColor: Colors.transparent,
+                                      AlertDialog(
+                                        backgroundColor: Colors.transparent,  // Transparent background
+                                        elevation: 0,  // Remove shadow
+                                        contentPadding: EdgeInsets.zero,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+// Remove default padding
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: (tappedCategory['spendings'] as List<dynamic>).map((spending) {
+                                            return Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                              child: Row(
 
-                                      content: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: (tappedCategory['spendings'] as List<dynamic>)
-                                            .map((spending) {
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(vertical: 4.0), // Optional: space between rows
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  spending['name'],
-                                                  style: const TextStyle(color: Colors.white),
-                                                ),
-                                                Text(
-                                                  "RWF ${spending['amount']}",
-                                                  style: const TextStyle(color: Colors.white),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ),
+                                                children: [
+                                                  Text(
+                                                    spending['name'],
+                                                    style: TextStyle(color: TColor.gray80),
+                                                  ),
+                                                  SizedBox(width: 8,),
+                                                  Text(
+                                                    "RWF ${spending['amount']}",
+                                                    style: TextStyle(color: TColor.gray80),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      )
+
                                   );
                                 }
                               }

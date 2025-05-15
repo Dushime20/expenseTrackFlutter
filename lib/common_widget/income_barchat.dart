@@ -35,7 +35,7 @@ class IncomeBarChart extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
+            const SizedBox(height: 30),
               Expanded( // ✅ Ensures chart doesn't overflow vertically
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
