@@ -31,6 +31,7 @@ class ExpenseController extends GetxController{
     print("onInit triggered category");
     fetchCategories();
     fetchCurrentMonthExpenses();
+    fetchCurrentMonthExpenseCategories();
     loadExpenseStatus();
   }
   Future<void>      fetchCategories() async {
@@ -137,6 +138,7 @@ class ExpenseController extends GetxController{
       await fetchCategories();
 
       await loadExpenseStatus();
+      await fetchCurrentMonthExpenseCategories();
       return true;
     } catch (e) {
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
