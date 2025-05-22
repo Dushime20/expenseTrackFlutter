@@ -111,7 +111,7 @@ class _HomeViewState extends State<HomeView> {
                         )),
                         const SizedBox(height: 6),
                         Text(
-                          "This month subCategory Expense",
+                          "This month Expense",
                           style: TextStyle(
                             color: TColor.gray60,
                             fontSize: 12,
@@ -148,11 +148,11 @@ class _HomeViewState extends State<HomeView> {
                       right: 20,
                       child: Row(
                         children: [
-                          Obx(() => _buildStatCard("Active subCategory",spendingCtrl.totalSpendingCount.value.toString())),
+                          Obx(() => _buildStatCard("Active expenses",spendingCtrl.totalSpendingCount.value.toString())),
                           const SizedBox(width: 8),
-                          Obx(() => _buildStatCard("Low subCategory", "${spendingCtrl.lowestSpending.value.toStringAsFixed(2)} Frw")),
+                          Obx(() => _buildStatCard("Low expense", "${spendingCtrl.lowestSpending.value.toStringAsFixed(2)} Frw")),
                           const SizedBox(width: 8),
-                          Obx(() => _buildStatCard("High subCategory", "${spendingCtrl.highestSpending.value.toStringAsFixed(2)} Frw")),
+                          Obx(() => _buildStatCard("High expense", "${spendingCtrl.highestSpending.value.toStringAsFixed(2)} Frw")),
                         ],
                       ),
                     ),

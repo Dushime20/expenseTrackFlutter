@@ -51,6 +51,7 @@ class _SettingsViewState extends State<SettingsView> {
             Stack(
               alignment: Alignment.center,
               children: [
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
