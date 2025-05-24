@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 
 import 'package:untitled/view/add_subscription/add_subscription_view.dart';
-
 import 'package:untitled/view/settings/settings_view.dart';
 import 'package:untitled/view/spending_budgets/spending_budgets_view.dart';
 import 'package:untitled/view/home/home_view.dart';
@@ -51,58 +49,117 @@ class _MainTabViewState extends State<MainTabView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    IconButton(
-                      onPressed: () {
+                    // Home Tab
+                    GestureDetector(
+                      onTap: () {
                         setState(() {
                           selectTab = 0;
                           currentTabView = const HomeView();
                         });
                       },
-                      icon: Image.asset(
-                        "assets/img/home.png",
-                        width: 24,
-                        height: 24,
-                        color: selectTab == 0 ? TColor.line : TColor.gray60,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            "assets/img/home.png",
+                            width: 24,
+                            height: 24,
+                            color: selectTab == 0 ? TColor.line : TColor.gray60,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Home",
+                            style: TextStyle(
+                              color: selectTab == 0 ? TColor.line : TColor.gray60,
+                              fontSize: 10,
+                            ),
+                          )
+                        ],
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
+
+                    // Budget Tab
+                    GestureDetector(
+                      onTap: () {
                         setState(() {
                           selectTab = 1;
                           currentTabView = const SpendingBudgetsView();
                         });
                       },
-                      icon: Image.asset(
-                        "assets/img/budgets.png",
-                        width: 24,
-                        height: 24,
-                        color: selectTab == 1 ? TColor.line : TColor.gray60,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            "assets/img/budgets.png",
+                            width: 24,
+                            height: 24,
+                            color: selectTab == 1 ? TColor.line : TColor.gray60,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Budget",
+                            style: TextStyle(
+                              color: selectTab == 1 ? TColor.line : TColor.gray60,
+                              fontSize: 10,
+                            ),
+                          )
+                        ],
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
+
+                    // Add Tab
+                    GestureDetector(
+                      onTap: () {
                         setState(() {
                           selectTab = 2;
                           currentTabView = const AddSubScriptionView();
                         });
                       },
-                      icon: Icon(
-                        Icons.add_box_outlined,
-                        size: 24,
-                        color: selectTab == 2 ? TColor.line : TColor.gray60,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.add_box_outlined,
+                            size: 24,
+                            color: selectTab == 2 ? TColor.line : TColor.gray60,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Add Expense",
+                            style: TextStyle(
+                              color: selectTab == 2 ? TColor.line : TColor.gray60,
+                              fontSize: 10,
+                            ),
+                          )
+                        ],
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
+
+                    // Settings Tab
+                    GestureDetector(
+                      onTap: () {
                         setState(() {
                           selectTab = 3;
                           currentTabView = const SettingsView();
                         });
                       },
-                      icon: Icon(
-                        Icons.settings,
-                        size: 24,
-                        color: selectTab == 3 ? TColor.line : TColor.gray60,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.settings,
+                            size: 24,
+                            color: selectTab == 3 ? TColor.line : TColor.gray60,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Settings",
+                            style: TextStyle(
+                              color: selectTab == 3 ? TColor.line : TColor.gray60,
+                              fontSize: 10,
+                            ),
+                          )
+                        ],
                       ),
                     ),
                   ],
@@ -113,6 +170,5 @@ class _MainTabViewState extends State<MainTabView> {
         ],
       ),
     );
-
   }
 }

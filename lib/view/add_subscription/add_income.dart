@@ -7,8 +7,6 @@ import 'package:untitled/common_widget/rounded_textfield.dart';
 
 import 'package:untitled/controller/home_controller.dart';
 
-import '../../common_widget/image_button.dart';
-import '../../controller/app_initialization_controller.dart';
 
 class AddIncomeView extends StatefulWidget {
   const AddIncomeView({super.key});

@@ -1,19 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
 import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/common_widget/budgets_row.dart';
 import 'package:untitled/common_widget/custom_arc_180_painter.dart';
 import 'package:untitled/controller/budgetController.dart';
+import 'package:untitled/controller/expense_controller.dart';
 import 'package:untitled/view/add_subscription/add_spending.dart';
+import 'package:untitled/view/add_subscription/add_subscription_view.dart';
 import 'package:untitled/view/budget/add_budget_screen.dart';
-
-import '../../controller/expense_controller.dart';
-import '../add_subscription/add_subscription_view.dart';
-import '../budget/update_budget_screen.dart';
-import '../settings/settings_view.dart';
-import 'package:get/get.dart';
+import 'package:untitled/view/budget/update_budget_screen.dart';
+import 'package:untitled/view/settings/settings_view.dart';
 
 class SpendingBudgetsView extends StatefulWidget {
   const SpendingBudgetsView({super.key});
@@ -22,11 +20,29 @@ class SpendingBudgetsView extends StatefulWidget {
   State<SpendingBudgetsView> createState() => _SpendingBudgetsViewState();
 }
 
-class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
+class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
+    with SingleTickerProviderStateMixin {
   final ExpenseController expenseCtrl = Get.put(ExpenseController());
-
   bool _dialogShown = false;
   BuildContext? _dialogContext;
+  AnimationController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _controller?.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _controller = null;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +52,6 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
       final bool hasBudget = ctrl.budgetList.isNotEmpty;
       final bObj = hasBudget ? ctrl.budgetList.first : null;
 
-      // Check usage and show/dismiss dialog after build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final total = ctrl.totalBudgetAmount.value;
         final used = ctrl.usedBudgetAmount.value;
@@ -44,322 +59,261 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView> {
         if (total > 0) {
           final percentUsed = (used / total) * 100;
 
-          if (percentUsed >= 75) {
-            if (!_dialogShown) {
-              _dialogShown = true;
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (dialogContext) {
-                  _dialogContext = dialogContext;
-                  return AlertDialog(
-                    title: const Text('Budget Alert'),
-                    content: Text(
-                      'Warning! You have used ${percentUsed.toStringAsFixed(1)}% of your total budget.',
-                      style: const TextStyle(color: Colors.red),
+          if (percentUsed >= 75 && !_dialogShown) {
+            _dialogShown = true;
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (dialogContext) {
+                _dialogContext = dialogContext;
+                return AlertDialog(
+                  title: const Text('Budget Alert'),
+                  content: Text(
+                    'Warning! You have used ${percentUsed.toStringAsFixed(1)}% of your total budget.',
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(_dialogContext!).pop();
+                        _dialogShown = false;
+                        _dialogContext = null;
+                      },
+                      child: const Text('Dismiss'),
                     ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          if (_dialogContext != null) {
-                            Navigator.of(_dialogContext!).pop();
-                            _dialogShown = false;
-                            _dialogContext = null;
-                          }
-                        },
-                        child: const Text('Dismiss'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            }
-          } else {
-            // Usage below 75%, dismiss dialog if shown
-            if (_dialogShown && _dialogContext != null) {
-              Navigator.of(_dialogContext!).pop();
-              _dialogShown = false;
-              _dialogContext = null;
-            }
+                  ],
+                );
+              },
+            );
+          } else if (_dialogShown && percentUsed < 75 && _dialogContext != null) {
+            Navigator.of(_dialogContext!).pop();
+            _dialogShown = false;
+            _dialogContext = null;
           }
         }
       });
 
       return Scaffold(
         backgroundColor: TColor.back,
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 35, right: 10),
-                child: Row(
-                  children: [
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsView(),
-                          ),
-                        );
-                      },
-                      icon: Image.asset(
-                        "assets/img/settings.png",
-                        width: 25,
-                        height: 25,
-                        color: TColor.gray30,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  SizedBox(
-                    width: media.width * 0.7,
-                    height: media.width * 0.30,
-                    child: CustomPaint(
-                      painter: CustomArc180Painter(
-                        totalBudget: ctrl.totalBudgetAmount.value,
-                        usedBudget: ctrl.usedBudgetAmount.value,
-                      ),
-                    ),
-                  ),
-                  Column(
+        body: _controller == null
+            ? const SizedBox()
+            : FadeTransition(
+                opacity: _controller!,
+                child: SingleChildScrollView(
+                  child: Column(
                     children: [
-                      const SizedBox(height: 10),
-                      Obx(() => Text(
-                        "${ctrl.totalBudgetAmount.value.toStringAsFixed(2)} Rwf budget",
-                        style: TextStyle(
-                          color: TColor.gray80,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                      const Padding(
+                        padding: EdgeInsets.only(top: 35, right: 10),
+                        child: Row(
+                          children: [
+                            Spacer(),
+                            // IconButton(
+                            //   onPressed: () => Get.to(() => const SettingsView()),
+                            //   icon: Image.asset(
+                            //     "assets/img/settings.png",
+                            //     width: 25,
+                            //     height: 25,
+                            //     color: TColor.gray30,
+                            //   ),
+                            // ),
+                          ],
                         ),
-                      )),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () {},
-                  child: Container(
-                    height: 180,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: TColor.border.withOpacity(0.1),
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    alignment: Alignment.center,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Stack(
+                        alignment: Alignment.bottomCenter,
                         children: [
-                          Obx(() => Text(
-                            "${ctrl.usedBudgetAmount.value.toStringAsFixed(2)} Rwf used budget",
-                            style: TextStyle(
-                              color: TColor.gray60,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                          SizedBox(
+                            width: media.width * 0.7,
+                            height: media.width * 0.30,
+                            child: CustomPaint(
+                              painter: CustomArc180Painter(
+                                totalBudget: ctrl.totalBudgetAmount.value,
+                                usedBudget: ctrl.usedBudgetAmount.value,
+                              ),
                             ),
-                          )),
-                          const SizedBox(height: 5),
-                          Obx(() => Text(
-                            "${ctrl.remainingBudgetAmount.value.toStringAsFixed(2)} Rwf remaining budget",
-                            style: TextStyle(
-                              color: TColor.gray60,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          )),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          ),
+                          Column(
                             children: [
-                              InkWell(
-                                onTap: () {
-                                  Get.to(() => const AddBudgetScreen());
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: TColor.border),
-                                    color: TColor.back,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Text(
-                                    "Manage your budget",
+                              const SizedBox(height: 10),
+                              Obx(() => Text(
+                                    "${ctrl.totalBudgetAmount.value.toStringAsFixed(2)} Rwf budget",
                                     style: TextStyle(
-                                      color: Colors.black87,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                                      color: TColor.gray80,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 2),
-                              PopupMenuButton<String>(
-                                icon: Icon(Icons.more_vert, color: TColor.gray80),
-                                onSelected: (value) {
-                                  if (value == 'update' && bObj != null) {
-                                    DateTime _toDate(dynamic value) {
-                                      if (value is Timestamp) return value.toDate();
-                                      if (value is DateTime) return value;
-                                      return DateTime.now();
-                                    }
-
-                                    final startDate = _toDate(bObj['startDate']);
-                                    final endDate = _toDate(bObj['endDate']);
-
-                                    Get.to(() => UpdateBudgetScreen(
-                                      budgetId: bObj['id'] ?? '',
-                                      initialAmount: bObj['amount'] ?? 0.0,
-                                      initialStartDate: startDate,
-                                      initialEndDate: endDate,
-                                    ));
-                                  } else if (value == 'delete') {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: const Text("Confirm Deletion"),
-                                          content: const Text(
-                                              "Are you sure you want to delete your budget?"),
-                                          actions: [
-                                            TextButton(
-                                              child: const Text("Cancel"),
-                                              onPressed: () {
-                                                Navigator.of(context).pop(); // Close dialog
-                                              },
-                                            ),
-                                            TextButton(
-                                              child: const Text("Delete",
-                                                  style:
-                                                  TextStyle(color: Colors.red)),
-                                              onPressed: () {
-                                                Navigator.of(context).pop(); // Close dialog
-                                                if (bObj != null) {
-                                                  ctrl.deleteBudget(bObj['id'] ?? '');
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  }
-                                },
-                                itemBuilder: (BuildContext context) =>
-                                const <PopupMenuEntry<String>>[
-                                  PopupMenuItem<String>(
-                                    value: 'update',
-                                    child: Text('Update'),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'delete',
-                                    child: Text('Delete'),
-                                  ),
-                                ],
-                              ),
+                                  )),
                             ],
                           ),
-                          const SizedBox(height: 30),
-                          Text(
-                            "Your budgets are on track 👍",
-                            style: TextStyle(
-                              color: TColor.gray60,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 20),
+                      _buildBudgetCard(ctrl, bObj, context),
+                      const Text("Expense History",
+                          style:
+                              TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      _buildExpenseList(),
+                      _buildAddCategoryButton(),
+                      const SizedBox(height: 110),
+                    ],
                   ),
                 ),
               ),
-              Obx(() {
-                if (expenseCtrl.expenseStatusList.isEmpty) {
-                  return const Text("No budgets added yet.");
-                }
-
-                return ListView.builder(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: expenseCtrl.expenseStatusList.length,
-                  itemBuilder: (context, index) {
-                    var bObj = expenseCtrl.expenseStatusList[index];
-                    return BudgetsRow(
-                      bObj: bObj,
-                      onPressed: () {},
-                    );
-                  },
-                );
-              }),
-              Padding(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () {},
-                  child: DottedBorder(
-                    dashPattern: const [5, 4],
-                    strokeWidth: 1,
-                    borderType: BorderType.RRect,
-                    radius: const Radius.circular(16),
-                    color: TColor.border.withOpacity(0.1),
-                    child: Container(
-                      height: 64,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              Get.to(() => const AddSubScriptionView());
-                            },
-                            child: Text(
-                              "Add new category ",
-                              style: TextStyle(
-                                color: TColor.gray60,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Image.asset(
-                            "assets/img/add.png",
-                            width: 12,
-                            height: 12,
-                            color: TColor.gray60,
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 110),
-            ],
-          ),
-        ),
       );
     });
+  }
+
+  Widget _buildBudgetCard(BudgetController ctrl, dynamic bObj, BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutExpo,
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: TColor.white,
+        border: Border.all(color: TColor.border.withOpacity(0.2)),
+        // borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Obx(() => Text(
+                "${ctrl.usedBudgetAmount.value.toStringAsFixed(2)} Rwf used",
+                style: TextStyle(
+                  color: TColor.gray60,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              )),
+          const SizedBox(height: 5),
+          Obx(() => Text(
+                "${ctrl.remainingBudgetAmount.value.toStringAsFixed(2)} Rwf remaining",
+                style: TextStyle(
+                  color: TColor.gray60,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              )),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              OutlinedButton(
+                onPressed: () => Get.to(() => const AddBudgetScreen()),
+                child: const Text("Manage your budget"),
+              ),
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert, color: TColor.gray80),
+                onSelected: (value) {
+                  if (value == 'update' && bObj != null) {
+                    DateTime _toDate(dynamic value) {
+                      if (value is Timestamp) return value.toDate();
+                      if (value is DateTime) return value;
+                      return DateTime.now();
+                    }
+
+                    Get.to(() => UpdateBudgetScreen(
+                          budgetId: bObj['id'] ?? '',
+                          initialAmount: bObj['amount'] ?? 0.0,
+                          initialStartDate: _toDate(bObj['startDate']),
+                          initialEndDate: _toDate(bObj['endDate']),
+                        ));
+                  } else if (value == 'delete') {
+                    _confirmDeleteBudget(context, ctrl, bObj);
+                  }
+                },
+                itemBuilder: (BuildContext context) => const [
+                  PopupMenuItem(value: 'update', child: Text('Update')),
+                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                ],
+              )
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpenseList() {
+    return Obx(() {
+      if (expenseCtrl.expenseStatusList.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text("No Category added yet."),
+        );
+      }
+
+      return ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 15),
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: expenseCtrl.expenseStatusList.length,
+        itemBuilder: (context, index) {
+          var bObj = expenseCtrl.expenseStatusList[index];
+          return BudgetsRow(
+            bObj: bObj,
+            onPressed: () {},
+          );
+        },
+      );
+    });
+  }
+
+  Widget _buildAddCategoryButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: DottedBorder(
+        dashPattern: const [5, 4],
+        strokeWidth: 1,
+        borderType: BorderType.RRect,
+        radius: const Radius.circular(16),
+        color: TColor.border.withOpacity(0.1),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Get.to(() => const AddSubScriptionView()),
+          child: Container(
+            height: 64,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Add new category",
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 8),
+                Image.asset("assets/img/add.png", width: 12, height: 12)
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDeleteBudget(BuildContext context, BudgetController ctrl, dynamic bObj) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Confirm Deletion"),
+          content: const Text("Are you sure you want to delete your budget?"),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text("Delete", style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                ctrl.deleteBudget(bObj['id'] ?? '');
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

@@ -56,6 +56,12 @@ dependencies:
 
 
   cupertino_icons: ^1.0.8
+  flutter_launcher_icons: ^0.13.1
+  
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/img/tracker.png" 
 
 dev_dependencies:
   flutter_test:

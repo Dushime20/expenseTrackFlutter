@@ -30,6 +30,7 @@ class IncomeHomeRow extends StatelessWidget {
       child: GestureDetector(
         onTap: onPressed,
         child: Container(
+          width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 10),
           height: 64,
           decoration: BoxDecoration(

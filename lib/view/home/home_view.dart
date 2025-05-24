@@ -17,8 +17,6 @@ import 'package:untitled/view/settings/settings_view.dart';
 
 import '../../common_widget/expense_barchat.dart';
 
-
-
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -29,13 +27,6 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   bool isIncome = true;
   final SpendingController spendingCtrl = Get.put(SpendingController());
-
-
-
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -80,8 +71,8 @@ class _HomeViewState extends State<HomeView> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (
-                                          context) => const SettingsView(),
+                                      builder: (context) =>
+                                          const SettingsView(),
                                     ),
                                   );
                                 },
@@ -102,16 +93,16 @@ class _HomeViewState extends State<HomeView> {
                       children: [
                         const SizedBox(height: 10),
                         Obx(() => Text(
-                          "${spendingCtrl.totalAmountSpending.value.toStringAsFixed(2)} Frw",
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        )),
+                              "${spendingCtrl.totalAmountSpending.value.toStringAsFixed(2)} Frw",
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            )),
                         const SizedBox(height: 6),
                         Text(
-                          "This month Expense",
+                          "This monthly Expense",
                           style: TextStyle(
                             color: TColor.gray60,
                             fontSize: 12,
@@ -120,16 +111,16 @@ class _HomeViewState extends State<HomeView> {
                         ),
                         const SizedBox(height: 10),
                         Obx(() => Text(
-                          "${ctrl.totalIncome.value.toStringAsFixed(0)} Frw",
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        )),
+                              "${ctrl.totalIncome.value.toStringAsFixed(0)} Frw",
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            )),
                         const SizedBox(height: 6),
                         Text(
-                          "This month income",
+                          "This monthly income",
                           style: TextStyle(
                             color: TColor.gray60,
                             fontSize: 12,
@@ -148,11 +139,16 @@ class _HomeViewState extends State<HomeView> {
                       right: 20,
                       child: Row(
                         children: [
-                          Obx(() => _buildStatCard("Active expenses",spendingCtrl.totalSpendingCount.value.toString())),
+                          Obx(() => _buildStatCard(
+                              "Active expenses",
+                              spendingCtrl.totalSpendingCount.value
+                                  .toString())),
                           const SizedBox(width: 8),
-                          Obx(() => _buildStatCard("Low expense", "${spendingCtrl.lowestSpending.value.toStringAsFixed(2)} Frw")),
+                          Obx(() => _buildStatCard("Low expense",
+                              "${spendingCtrl.lowestSpending.value.toStringAsFixed(2)} Frw")),
                           const SizedBox(width: 8),
-                          Obx(() => _buildStatCard("High expense", "${spendingCtrl.highestSpending.value.toStringAsFixed(2)} Frw")),
+                          Obx(() => _buildStatCard("High expense",
+                              "${spendingCtrl.highestSpending.value.toStringAsFixed(2)} Frw")),
                         ],
                       ),
                     ),
@@ -162,8 +158,8 @@ class _HomeViewState extends State<HomeView> {
 
               // Toggle buttons
               Container(
-                margin: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 10),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 height: 45,
                 width: 250,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -175,24 +171,24 @@ class _HomeViewState extends State<HomeView> {
                   children: [
                     Expanded(
                       child: SegmentButton(
-                        title: ' Income',
+                        title: 'Expense',
+                        onPress: () {
+                          setState(() {
+                            isIncome = true; // Income tab active
+                          });
+                        },
+                        isActive: isIncome, // active if isIncome true
+                      ),
+                    ),
+                    Expanded(
+                      child: SegmentButton(
+                        title: 'Income',
                         onPress: () {
                           setState(() {
                             isIncome = false;
                           });
                         },
-                        isActive: !isIncome,
-                      ),
-                    ),
-                    Expanded(
-                      child: SegmentButton(
-                        title: 'subCategory',
-                        onPress: () {
-                          setState(() {
-                            isIncome = true;
-                          });
-                        },
-                        isActive: isIncome,
+                        isActive: !isIncome, 
                       ),
                     ),
                   ],
@@ -203,96 +199,90 @@ class _HomeViewState extends State<HomeView> {
               if (!isIncome)
                 Obx(() {
                   if (ctrl.income.isEmpty) {
-                    return const Center(child: Text("No Income available this Month"));
+                    return const Center(
+                        child: Text("No Income available this Month"));
                   }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-              // Show income Chart
-              SizedBox(
-              height: 300, // Adjust height as needed
-              child: IncomeBarChart(),
-                  ),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 300, 
+                        child: IncomeBarChart(),
+                      ),
+                      ListView.builder(
+    
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: ctrl.income.length,
+                        itemBuilder: (context, index) {
+                          final income = ctrl.income[index];
 
-              ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: ctrl.income.length,
-              itemBuilder: (context, index) {
-
-                final income = ctrl.income[index];
-
-
-                return IncomeHomeRow(
-                  sObj: {
-                    "id": income.id,
-                    "name": income.name,
-                    "date": income.date,
-                    "price": income.amount.toString()
-                  },
-                  onPressed: () {},
-                  onUpdate: () {
-                    Get.to(() => UpdateIncomeView(id: income.id!));
-                  },
-                  onDelete: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text("Confirm Deletion"),
-                          content: const Text(
-                              "Are you sure you want to delete this income?"),
-                          actions: [
-                            TextButton(
-                              child: const Text("Cancel"),
-                              onPressed: () {
-                                Navigator.of(context).pop(); // Close the dialog
-                              },
-                            ),
-                            TextButton(
-                              child: const Text("Delete",
-                                  style: TextStyle(color: Colors.red)),
-                              onPressed: () {
-                                Navigator
-                                    .of(context)
-                                    .pop(); // Close the dialog first
-                                ctrl.deleteIncome(
-                                    income.id!); // Call your delete function
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-              ),
-              ],
-            );
-
-
-          }),
+                          return IncomeHomeRow(
+                            sObj: {
+                              "id": income.id,
+                              "name": income.name,
+                              "date": income.date,
+                              "price": income.amount.toString()
+                            },
+                            onPressed: () {},
+                            onUpdate: () {
+                              Get.to(() => UpdateIncomeView(id: income.id!));
+                            },
+                            onDelete: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text("Confirm Deletion"),
+                                    content: const Text(
+                                        "Are you sure you want to delete this income?"),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text("Cancel"),
+                                        onPressed: () {
+                                          Navigator.of(context)
+                                              .pop(); // Close the dialog
+                                        },
+                                      ),
+                                      TextButton(
+                                        child: const Text("Delete",
+                                            style:
+                                                TextStyle(color: Colors.red)),
+                                        onPressed: () {
+                                          Navigator.of(context)
+                                              .pop(); // Close the dialog first
+                                          ctrl.deleteIncome(income
+                                              .id!); // Call your delete function
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                }),
 
               if (isIncome)
                 Obx(() {
                   if (spendingCtrl.spending.isEmpty) {
-                    return const Center(child: Text("No Spending available this Month"));
+                    return const Center(
+                        child: Text("No Spending available this Month"));
                   }
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Show Expense Chart
                       SizedBox(
-                        height: 300, // Adjust height as needed
+                        height: 300,
                         child: ExpenseBarChart(),
                       ),
-
-                      // List of Spending Rows
                       ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        // padding: const EdgeInsets.symmetric(horizontal: 20),
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         itemCount: spendingCtrl.spending.length,
@@ -314,7 +304,8 @@ class _HomeViewState extends State<HomeView> {
                                 builder: (BuildContext context) {
                                   return AlertDialog(
                                     title: const Text("Confirm Deletion"),
-                                    content: const Text("Are you sure you want to delete this expense?"),
+                                    content: const Text(
+                                        "Are you sure you want to delete this expense?"),
                                     actions: [
                                       TextButton(
                                         child: const Text("Cancel"),
@@ -323,10 +314,13 @@ class _HomeViewState extends State<HomeView> {
                                         },
                                       ),
                                       TextButton(
-                                        child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                                        child: const Text("Delete",
+                                            style:
+                                                TextStyle(color: Colors.red)),
                                         onPressed: () {
                                           Navigator.of(context).pop();
-                                          spendingCtrl.deleteSpending(spent['id']);
+                                          spendingCtrl
+                                              .deleteSpending(spent['id']);
                                         },
                                       ),
                                     ],
@@ -341,8 +335,6 @@ class _HomeViewState extends State<HomeView> {
                     ],
                   );
                 }),
-
-
 
               const SizedBox(height: 80),
             ],

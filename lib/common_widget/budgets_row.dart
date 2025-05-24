@@ -24,6 +24,7 @@ class BudgetsRow extends StatelessWidget {
           onTap: onPressed,
           child: Container(
             padding: const EdgeInsets.all(10),
+            width: double.infinity,
             decoration: BoxDecoration(
               border: Border.all(
                 color: TColor.border.withOpacity(0.05),
@@ -120,7 +121,7 @@ class BudgetsRow extends StatelessWidget {
                 LinearProgressIndicator(
                   backgroundColor: TColor.gray60,
                   valueColor: AlwaysStoppedAnimation(bObj["color"] ?? TColor.line),
-                  minHeight: 3,
+                  minHeight: 1,
                   value: proVal > 1.0 ? 1.0 : proVal,
                 ),
               ],
