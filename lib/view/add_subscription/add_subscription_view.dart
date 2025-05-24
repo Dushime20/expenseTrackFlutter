@@ -2,13 +2,16 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:untitled/common/color_extension.dart';
+import 'package:untitled/common_widget/income_segment_button.dart';
 import 'package:untitled/common_widget/primary_button.dart';
 import 'package:untitled/common_widget/rounded_textfield.dart';
 import 'package:untitled/controller/expense_controller.dart';
 
 import 'package:untitled/controller/home_controller.dart';
+import 'package:untitled/model/spending/spending.dart';
 import 'package:untitled/view/add_subscription/add_income.dart';
 import 'package:untitled/view/add_subscription/add_spending.dart';
+import 'package:untitled/view/spending_budgets/spending_budgets_view.dart';
 
 import '../../common_widget/segment_button.dart';
 
@@ -70,6 +73,8 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
     if(addExpense){
       Get.snackbar("Success", "Transaction added successfully",
           colorText: TColor.line);
+
+          Get.to(()=>SpendingBudgetsView());
       // Reset state
       setState(() {
 
@@ -261,28 +266,28 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: SegmentButton(
+                        child: IncomeSegmentButton(
                           title: 'Add subCategory',
                           onPress: () {
                             setState(() {
                               Get.to(() => const AddSpendingView());
-                              isIncome = false;
+                              
                             });
                           },
-                          isActive: !isIncome,
+                        
 
                         ),
                       ),
                       Expanded(
-                        child: SegmentButton(
+                        child: IncomeSegmentButton(
                           title: 'add Income',
                           onPress: () {
                             setState(() {
                               Get.to(() => const AddIncomeView());
-                              isIncome = true;
+                              
                             });
                           },
-                          isActive: isIncome,
+                         
                         ),
                       ),
                     ],

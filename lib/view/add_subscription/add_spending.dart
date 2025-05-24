@@ -8,6 +8,8 @@ import 'package:untitled/controller/expense_controller.dart';
 
 import 'package:untitled/controller/home_controller.dart';
 import 'package:untitled/controller/spending_controller.dart';
+import 'package:untitled/view/home/home_view.dart';
+import 'package:untitled/view/main_tab/main_tab_view.dart';
 
 import '../../common_widget/image_button.dart';
 import '../../controller/app_initialization_controller.dart';
@@ -68,6 +70,8 @@ class _AddSpendingViewState extends State<AddSpendingView> {
     if(addSpending){
       Get.snackbar("Success", "spending added successfully",
           colorText: TColor.line);
+
+          Get.to(()=>MainTabView());
 
       setState(() {
         spendingCtrl.subNameCtrl.clear();

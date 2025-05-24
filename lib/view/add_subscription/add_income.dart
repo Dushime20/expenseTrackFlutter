@@ -6,6 +6,8 @@ import 'package:untitled/common_widget/primary_button.dart';
 import 'package:untitled/common_widget/rounded_textfield.dart';
 
 import 'package:untitled/controller/home_controller.dart';
+import 'package:untitled/view/home/home_view.dart';
+import 'package:untitled/view/main_tab/main_tab_view.dart';
 
 
 class AddIncomeView extends StatefulWidget {
@@ -68,7 +70,7 @@ class _AddIncomeViewState extends State<AddIncomeView> {
       Get.snackbar("Success", "Transaction added successfully",
           colorText: TColor.line);
 
-      Navigator.pop(context);
+      Get.to(()=>MainTabView());
     }
 
 

@@ -183,7 +183,7 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                    strokeWidth: 2,
+                   
                     color: Colors.white,
                   ),
                 )

@@ -202,6 +202,7 @@ class HomeController extends GetxController{
     try {
       await incomeCollection.doc(id).delete();
       fetchIncome();
+      calculateMonthlyIncome();
       Get.snackbar("Success", "income deleted successfully", colorText: TColor.line);
     } catch (e) {
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
