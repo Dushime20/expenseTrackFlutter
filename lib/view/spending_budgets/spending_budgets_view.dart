@@ -85,7 +85,9 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
                 );
               },
             );
-          } else if (_dialogShown && percentUsed < 75 && _dialogContext != null) {
+          } else if (_dialogShown &&
+              percentUsed < 75 &&
+              _dialogContext != null) {
             Navigator.of(_dialogContext!).pop();
             _dialogShown = false;
             _dialogContext = null;
@@ -150,8 +152,8 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
                       const SizedBox(height: 20),
                       _buildBudgetCard(ctrl, bObj, context),
                       const Text("Expense History",
-                          style:
-                              TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                       _buildExpenseList(),
                       _buildAddCategoryButton(),
                       const SizedBox(height: 110),
@@ -163,7 +165,8 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
     });
   }
 
-  Widget _buildBudgetCard(BudgetController ctrl, dynamic bObj, BuildContext context) {
+  Widget _buildBudgetCard(
+      BudgetController ctrl, dynamic bObj, BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutExpo,
@@ -217,13 +220,10 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
                           initialStartDate: _toDate(bObj['startDate']),
                           initialEndDate: _toDate(bObj['endDate']),
                         ));
-                  } else if (value == 'delete') {
-                    _confirmDeleteBudget(context, ctrl, bObj);
                   }
                 },
                 itemBuilder: (BuildContext context) => const [
                   PopupMenuItem(value: 'update', child: Text('Update')),
-                  PopupMenuItem(value: 'delete', child: Text('Delete')),
                 ],
               )
             ],
@@ -292,7 +292,8 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
     );
   }
 
-  void _confirmDeleteBudget(BuildContext context, BudgetController ctrl, dynamic bObj) {
+  void _confirmDeleteBudget(
+      BuildContext context, BudgetController ctrl, dynamic bObj) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

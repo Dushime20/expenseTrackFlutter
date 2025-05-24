@@ -6,16 +6,17 @@ import 'package:untitled/service/AuthenticationService.dart';
 import 'package:untitled/view/login/edit_profile.dart';
 import 'package:untitled/view/login/sign_in_view.dart';
 
-
 import '../../common/color_extension.dart';
 import '../../common_widget/icon_item_row.dart';
 import '../../report/budget_report.dart';
+
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
 
   @override
   State<SettingsView> createState() => _SettingsViewState();
 }
+
 class _SettingsViewState extends State<SettingsView> {
   bool isActive = false;
   final AuthenticationService authService = AuthenticationService();
@@ -51,27 +52,31 @@ class _SettingsViewState extends State<SettingsView> {
             Stack(
               alignment: Alignment.center,
               children: [
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Settings",
-                      style: TextStyle(color: TColor.gray80, fontSize: 16),
-                    )
-                  ],
-                ),
+                const SizedBox(height: 40),
+                Container(
+                  margin:
+                      const EdgeInsets.only(top: 40), // 👈 add top margin here
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Settings",
+                        style: TextStyle(color: TColor.gray80, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                )
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 Icon(
                   Icons.person,
                   size: 70,
-                  color: TColor.gray50, // Optional: change color to match your theme
+                  color: TColor
+                      .gray50, // Optional: change color to match your theme
                 ),
               ],
             ),
@@ -109,7 +114,7 @@ class _SettingsViewState extends State<SettingsView> {
             InkWell(
               borderRadius: BorderRadius.circular(15),
               onTap: () {
-                Get.to(()=> EditProfileView());
+                Get.to(() => EditProfileView());
               },
               child: Container(
                 padding: const EdgeInsets.all(6),
@@ -134,8 +139,6 @@ class _SettingsViewState extends State<SettingsView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-
                   Padding(
                     padding: const EdgeInsets.only(top: 20, bottom: 8),
                     child: Text(
@@ -159,48 +162,49 @@ class _SettingsViewState extends State<SettingsView> {
                       children: [
                         IconItemRow(
                           title: "Expense Report",
-
                           value: "save",
-                          onTap: () async{
+                          onTap: () async {
                             final generator = ExpensePdfGenerator();
                             await generator.generateAndSaveExpenseReport();
                           },
                         ),
-                        SizedBox(height: 30,),
-
+                        SizedBox(
+                          height: 30,
+                        ),
                         IconItemRow(
                           title: "Income Report",
-
                           value: "save",
-                          onTap: () async{
+                          onTap: () async {
                             final generator = IncomePdfGenerator();
                             await generator.generateAndSaveIncomeReport();
                           },
                         ),
-                        SizedBox(height: 30,),
+                        SizedBox(
+                          height: 30,
+                        ),
                         IconItemRow(
                           title: "Budget Report",
-
                           value: "save",
-                          onTap: () async{
+                          onTap: () async {
                             final generator = BudgetPdfGenerator();
                             await generator.generateAndSaveBudgetReport();
                           },
                         ),
-
-                        
                       ],
                     ),
                   ),
-
-                 SizedBox(height: 30,),
-
-                  TextButton(onPressed: () async{
-                    await AuthenticationService().signOut();
-                    Get.to(const SignInView());
-                  }, child:
-                  Text("Logout",style: TextStyle(color: TColor.gray70, fontSize: 16),)),
-
+                  SizedBox(
+                    height: 30,
+                  ),
+                  TextButton(
+                      onPressed: () async {
+                        await AuthenticationService().signOut();
+                        Get.to(const SignInView());
+                      },
+                      child: Text(
+                        "Logout",
+                        style: TextStyle(color: TColor.gray70, fontSize: 16),
+                      )),
                 ],
               ),
             )
