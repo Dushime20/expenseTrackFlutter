@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/common_widget/primary_button.dart';
 import 'package:untitled/common_widget/secondary_button.dart';
 import 'package:untitled/service/AuthenticationService.dart';
@@ -156,7 +157,7 @@ class _SignInViewState extends State<SignInView> {
                           PrimaryButton(
                             title: "Sign In",
                             onPress: signInUser,
-                            color: textColor,
+                            color: TColor.white,
                           ),
                           const SizedBox(height: 20),
                           Row(
