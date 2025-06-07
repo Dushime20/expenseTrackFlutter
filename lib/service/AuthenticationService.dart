@@ -3,9 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:untitled/common/color_extension.dart';
-import 'package:untitled/controller/budgetController.dart';
 
-import 'package:untitled/controller/home_controller.dart';
 
 class AuthenticationService {
 
@@ -64,6 +62,7 @@ class AuthenticationService {
         "email": email,
         "phone": phone,
         "uid": credential.user!.uid,
+        
       });
 
       Get.snackbar("Success", "Signup successful", colorText: TColor.line);

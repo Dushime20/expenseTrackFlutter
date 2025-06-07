@@ -28,7 +28,8 @@ class IconItemRow extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                color: TColor.gray70,
+color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray70,
+
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -38,11 +39,11 @@ class IconItemRow extends StatelessWidget {
               style: TextButton.styleFrom(
                 foregroundColor: TColor.white,
                 backgroundColor: TColor.line,
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               ),
               child: Text(
                 value,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),

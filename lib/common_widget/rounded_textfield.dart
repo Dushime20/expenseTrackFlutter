@@ -20,7 +20,8 @@ class RoundedTextField extends StatelessWidget {
     return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(color: TColor.gray,fontSize: 18),
+          Text(title, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray,
+fontSize: 18),
           ),
           const SizedBox(
             height: 20,
@@ -30,7 +31,8 @@ class RoundedTextField extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               border: Border.all(color: TColor.gray10),
-              color: TColor.white,
+              color:Theme.of(context).brightness == Brightness.dark ? TColor.gray60 : TColor.white,
+
               borderRadius: BorderRadius.circular(5),
             ),
             alignment: Alignment.center,
@@ -38,10 +40,11 @@ class RoundedTextField extends StatelessWidget {
 
               controller: controller,
               style: TextStyle(
-                color: TColor.gray,
+                          color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray60,
+
                 fontSize: 16,
               ),
-              decoration: const InputDecoration(
+              decoration:  InputDecoration(
                 isCollapsed: true, // Avoid extra padding
                 contentPadding: EdgeInsets.symmetric(vertical: 14,horizontal: 8),
                 border: InputBorder.none,
@@ -49,7 +52,8 @@ class RoundedTextField extends StatelessWidget {
                 enabledBorder: InputBorder.none,
                 disabledBorder: InputBorder.none,
                 hintText: "Type here .....",
-                hintStyle: TextStyle(color: Colors.grey),
+                hintStyle: TextStyle( color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray60,
+),
 
               ),
               keyboardType: keyboardType,

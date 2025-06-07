@@ -1,29 +1,27 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:untitled/common/color_extension.dart';
-import 'package:untitled/controller/spending_controller.dart';
 
-class ExpenseController extends GetxController{
-
+class ExpenseController extends GetxController {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
 
   //final SpendingController spendingController= Get.put(SpendingController());
 
-  late final CollectionReference expenseCollection = firestore.collection("expense");
-  late final CollectionReference budgetCollection = firestore.collection("budget");
-  late final CollectionReference spendingCollection = firestore.collection("spending");
+  late final CollectionReference expenseCollection =
+      firestore.collection("expense");
+  late final CollectionReference budgetCollection =
+      firestore.collection("budget");
+  late final CollectionReference spendingCollection =
+      firestore.collection("spending");
 
-
-  RxList<Map<String, String>> currentMonthCategories = <Map<String, String>>[].obs;
-  RxList<Map<String, dynamic>> currentMonthExpenses = <Map<String, dynamic>>[].obs;
+  RxList<Map<String, String>> currentMonthCategories =
+      <Map<String, String>>[].obs;
+  RxList<Map<String, dynamic>> currentMonthExpenses =
+      <Map<String, dynamic>>[].obs;
   RxList<Map<String, dynamic>> expenseStatusList = <Map<String, dynamic>>[].obs;
-
-
-
 
   @override
   void onInit() {
@@ -34,14 +32,13 @@ class ExpenseController extends GetxController{
     fetchCurrentMonthExpenseCategories();
     loadExpenseStatus();
   }
-  Future<void>      fetchCategories() async {
+
+  Future<void> fetchCategories() async {
     final fetchedCategories = await fetchCurrentMonthExpenseCategories();
     currentMonthCategories.assignAll(fetchedCategories);
-    print("fetched category, ${fetchedCategories}");// KEEP RxList intact
+    print("fetched category, ${fetchedCategories}"); // KEEP RxList intact
     update(); // Only needed if using GetBuilder; not needed with Obx
   }
-
-
 
   final TextEditingController amountCtrl = TextEditingController();
   final TextEditingController categoryCtrl = TextEditingController();
@@ -51,7 +48,6 @@ class ExpenseController extends GetxController{
     expenseStatusList.assignAll(data);
     print("Loaded expense status: ${expenseStatusList}");
   }
-
 
 // Add expense for current logged-in user, validating against remaining budget
   Future<bool> addExpense() async {
@@ -88,9 +84,12 @@ class ExpenseController extends GetxController{
         return false;
       }
 
-      final Map<String, dynamic> budgetData = budgetRawData as Map<String, dynamic>;
-      final double totalBudget = double.tryParse(budgetData['amount'].toString()) ?? 0.0;
-      final DateTime startDate = (budgetData['startDate'] as Timestamp).toDate();
+      final Map<String, dynamic> budgetData =
+          budgetRawData as Map<String, dynamic>;
+      final double totalBudget =
+          double.tryParse(budgetData['amount'].toString()) ?? 0.0;
+      final DateTime startDate =
+          (budgetData['startDate'] as Timestamp).toDate();
       final DateTime endDate = (budgetData['endDate'] as Timestamp).toDate();
 
       // Step 2: Fetch total spent in the same period
@@ -105,7 +104,8 @@ class ExpenseController extends GetxController{
         final data = doc.data();
         if (data != null) {
           final expenseData = data as Map<String, dynamic>;
-          final expAmount = double.tryParse(expenseData['amount'].toString()) ?? 0.0;
+          final expAmount =
+              double.tryParse(expenseData['amount'].toString()) ?? 0.0;
           totalSpent += expAmount;
         }
       }
@@ -132,7 +132,8 @@ class ExpenseController extends GetxController{
 
       await doc.set(expense);
 
-      Get.snackbar("Success", "Expense added successfully", colorText: TColor.line);
+      Get.snackbar("Success", "Expense added successfully",
+          colorText: TColor.line);
 
       await fetchCurrentMonthExpenses();
       await fetchCategories();
@@ -163,17 +164,13 @@ class ExpenseController extends GetxController{
       final startOfMonth = DateTime(now.year, now.month, 1);
       final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
-      print("Start of month: $startOfMonth");
-      print("End of month: $endOfMonth");
-      print("Current user ID: $userId");
-
       final snapshot = await expenseCollection
           .where('userId', isEqualTo: userId)
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+          .where('date',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
           .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
           .get();
 
-      print("Total expense docs fetched: ${snapshot.docs.length}");
       final List<Map<String, String>> categories = [];
 
       for (var doc in snapshot.docs) {
@@ -188,19 +185,11 @@ class ExpenseController extends GetxController{
         }
       }
 
-
-
-
-      print("Unique categories this month: $categories");
-
       return categories;
-
     } catch (e) {
-      print('Error fetching current month expense categories: $e');
       return [];
     }
   }
-
 
   //fetch current month expense for current logged in user  category and amount,
   Future<void> fetchCurrentMonthExpenses() async {
@@ -217,7 +206,8 @@ class ExpenseController extends GetxController{
 
       QuerySnapshot snapshot = await expenseCollection
           .where('userId', isEqualTo: currentUser.uid)
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+          .where('date',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
           .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
           .get();
 
@@ -236,9 +226,8 @@ class ExpenseController extends GetxController{
       }
 
       // You can store this in an observable list if needed:
-       currentMonthExpenses.assignAll(expenses);
+      currentMonthExpenses.assignAll(expenses);
       await fetchCurrentMonthExpenseCategories();
-
     } catch (e) {
       print("Error Failed to fetch expenses: $e");
     }
@@ -292,7 +281,8 @@ class ExpenseController extends GetxController{
             usedAmount += amount;
 
             spendings.add({
-              'name': spendingData['name'] ?? '', // Adjust if your field is 'title' or 'description'
+              'name': spendingData['name'] ??
+                  '', // Adjust if your field is 'title' or 'description'
               'amount': amount,
             });
           }
@@ -322,22 +312,16 @@ class ExpenseController extends GetxController{
     }
   }
 
-
-
-
   //delete expense
-  deleteExpense(String id) async{
+  deleteExpense(String id) async {
     try {
       await expenseCollection.doc(id).delete();
 
-      Get.snackbar("Success", "expense added successfully", colorText: TColor.line);
+      Get.snackbar("Success", "expense added successfully",
+          colorText: TColor.line);
     } catch (e) {
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
       print(e);
     }
   }
-
-
 }
-
-

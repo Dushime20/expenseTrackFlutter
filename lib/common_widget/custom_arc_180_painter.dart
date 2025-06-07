@@ -1,28 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import '../common/color_extension.dart';
 
-
-class ArcValueModel {
-  final Color color;
-  final double value;
-
-  ArcValueModel({required this.color, required this.value});
-}
-
-class CustomArc180Painter extends CustomPainter {
-  final double totalBudget;
-  final double usedBudget;
+class CustomArcPainter extends CustomPainter {
+  final double end; // 0.0 to 1.0 (percentage)
   final double width;
   final double bgWidth;
   final double blurWidth;
 
-  CustomArc180Painter({
-    required this.totalBudget,
-    required this.usedBudget,
+  CustomArcPainter({
+    required this.end,
     this.width = 15,
     this.bgWidth = 10,
-    this.blurWidth = 4,
+    this.blurWidth = 4, required double usedBudget, required double totalBudget,
   });
 
   @override
@@ -39,46 +29,84 @@ class CustomArc180Painter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     // Draw full 180° background arc
-    canvas.drawArc(rect, radians(180), radians(180), false, bgPaint);
+    canvas.drawArc(rect, vm.radians(180), vm.radians(180), false, bgPaint);
 
-    if (usedBudget <= 0 || totalBudget <= 0) return;
+    if (end <= 0) return;
 
-    final usedPercent = (usedBudget / totalBudget).clamp(0.0, 1.0);
+    final usedPercent = end.clamp(0.0, 1.0);
     final usedDegrees = 180 * usedPercent;
-    final safeLimit = 0.75;
+    
+    // Define the percentage thresholds
+    const safeLimit = 0.50;    // 50% - Green zone
+    const warningLimit = 0.75; // 75% - Yellow zone
+    
     final safeDegrees = 180 * safeLimit;
+    final warningDegrees = 180 * warningLimit;
 
-    double startAngle = radians(180); // Starting from 180°
+    double startAngle = vm.radians(180); // Starting from 180°
 
     if (usedPercent <= safeLimit) {
-      // Paint full green arc
+      // Green zone: 0% - 50%
       _drawArcSegment(
         canvas,
         rect,
         startAngle,
-        radians(usedDegrees),
-        TColor.line,
+        vm.radians(usedDegrees),
+        Colors.green,
+      );
+    } else if (usedPercent <= warningLimit) {
+      // Draw green segment up to 50%
+      _drawArcSegment(
+        canvas,
+        rect,
+        startAngle,
+        vm.radians(safeDegrees),
+        Colors.green,
+      );
+
+      // Yellow zone: 50% - 75%
+      final yellowStartAngle = startAngle + vm.radians(safeDegrees);
+      final yellowSweepAngle = vm.radians(usedDegrees - safeDegrees);
+      
+      _drawArcSegment(
+        canvas,
+        rect,
+        yellowStartAngle,
+        yellowSweepAngle,
+        Colors.amber,
       );
     } else {
-      // Green segment up to 75%
+      // Draw green segment up to 50%
       _drawArcSegment(
         canvas,
         rect,
         startAngle,
-        radians(safeDegrees),
-        TColor.line,
+        vm.radians(safeDegrees),
+        Colors.green,
       );
 
-      // Red segment for overflow (after 75%)
-      final redStartAngle = startAngle + radians(safeDegrees);
-      final redSweepAngle = radians(usedDegrees - safeDegrees);
+      // Draw yellow segment from 50% to 75%
+      final yellowStartAngle = startAngle + vm.radians(safeDegrees);
+      final yellowSweepAngle = vm.radians(warningDegrees - safeDegrees);
+      
+      _drawArcSegment(
+        canvas,
+        rect,
+        yellowStartAngle,
+        yellowSweepAngle,
+        Colors.amber,
+      );
 
+      // Red zone: 75% and above
+      final redStartAngle = startAngle + vm.radians(warningDegrees);
+      final redSweepAngle = vm.radians(usedDegrees - warningDegrees);
+      
       _drawArcSegment(
         canvas,
         rect,
         redStartAngle,
         redSweepAngle,
-        TColor.secondary,
+        Colors.red,
       );
     }
   }
@@ -102,11 +130,36 @@ class CustomArc180Painter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CustomArc180Painter oldDelegate) =>
-      oldDelegate.usedBudget != usedBudget ||
-          oldDelegate.totalBudget != totalBudget;
+  bool shouldRepaint(CustomArcPainter oldDelegate) =>
+      oldDelegate.end != end;
 
   @override
-  bool shouldRebuildSemantics(CustomArc180Painter oldDelegate) => false;
+  bool shouldRebuildSemantics(CustomArcPainter oldDelegate) => false;
 }
 
+// Helper methods for the end parameter version
+class ArcHelper {
+  static String getStatusFromEnd(double end) {
+    final percentage = (end * 100);
+    
+    if (percentage <= 50) {
+      return 'Safe Zone';
+    } else if (percentage <= 75) {
+      return 'Warning Zone';
+    } else {
+      return 'Critical Zone';
+    }
+  }
+  
+  static String? getNotificationFromEnd(double end) {
+    final percentage = (end * 100);
+    
+    if (percentage > 50 && percentage <= 75) {
+      return "You are approaching your budget limit.";
+    } else if (percentage > 75) {
+      return "You have exceeded the safe limit. Please reduce your spending.";
+    }
+    
+    return null;
+  }
+}

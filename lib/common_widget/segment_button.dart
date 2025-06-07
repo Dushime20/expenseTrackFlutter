@@ -32,7 +32,8 @@ class SegmentButton extends StatelessWidget {
         child: Text(
           title,
           style: TextStyle(
-            color: isActive ? Colors.white : Colors.black87,
+            color: isActive ? Colors.white :Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray60,
+
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),

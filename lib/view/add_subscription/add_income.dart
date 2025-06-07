@@ -1,14 +1,10 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/common_widget/primary_button.dart';
 import 'package:untitled/common_widget/rounded_textfield.dart';
-
 import 'package:untitled/controller/home_controller.dart';
-import 'package:untitled/view/home/home_view.dart';
 import 'package:untitled/view/main_tab/main_tab_view.dart';
-
 
 class AddIncomeView extends StatefulWidget {
   const AddIncomeView({super.key});
@@ -18,9 +14,7 @@ class AddIncomeView extends StatefulWidget {
 }
 
 class _AddIncomeViewState extends State<AddIncomeView> {
-
   final HomeController homeCtrl = Get.put(HomeController());
-
 
   List subArr = [
     {"name": "Salary", "icon": "assets/img/money.jpg"},
@@ -30,112 +24,74 @@ class _AddIncomeViewState extends State<AddIncomeView> {
     {"name": "NetFlix", "icon": "assets/img/netflix_logo.png"}
   ];
 
-
-  //Added loading flag
   bool _isLoading = false;
-  @override
-  void initState() {
-    super.initState();
-
-  }
 
   void handleSubmit() async {
-
-
     if (homeCtrl.descriptionCtrl.text.trim().isEmpty) {
       Get.snackbar("Error", "Please enter a name",
-          colorText: TColor.secondary);
+          colorText: Theme.of(context).colorScheme.error);
       return;
     }
-
 
     if (homeCtrl.amountCtrl.text.trim().isEmpty) {
-      Get.snackbar("Error", "Please enter a amount",
-          colorText: TColor.secondary);
+      Get.snackbar("Error", "Please enter an amount",
+          colorText: Theme.of(context).colorScheme.error);
       return;
     }
-    // Start loading
-    setState(() {
-      _isLoading = true;
-    });
 
+    setState(() => _isLoading = true);
     final addIncome = await homeCtrl.addIncome();
+    setState(() => _isLoading = false);
 
-    // Stop loading
-    setState(() {
-      _isLoading = false;
-    });
-    if(addIncome){
-
+    if (addIncome) {
       Get.snackbar("Success", "Transaction added successfully",
-          colorText: TColor.line);
-
-      Get.to(()=>MainTabView());
+          colorText: Theme.of(context).colorScheme.primary);
+      Get.to(() => const MainTabView());
     }
 
-
-    // Reset state
-    setState(() {
-
-      homeCtrl.descriptionCtrl.clear();
-      homeCtrl.amountCtrl.clear();
-
-    });
+    homeCtrl.descriptionCtrl.clear();
+    homeCtrl.amountCtrl.clear();
   }
-
 
   @override
   Widget build(BuildContext context) {
-
-    // Ensure initialization happens when the screen is built
-    //
-
     var media = MediaQuery.sizeOf(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return GetBuilder<HomeController>(builder: (_) {
       return Scaffold(
-        backgroundColor: TColor.back,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: SingleChildScrollView(
           child: Column(
             children: [
-              // Header & Carousel
+              // Header with theme background and text
               Container(
                 decoration: BoxDecoration(
-                    color: TColor.white,
-                    borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(25),
-                        bottomRight: Radius.circular(25))),
+                  color: theme.cardColor,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(25),
+                    bottomRight: Radius.circular(25),
+                  ),
+                ),
                 child: SafeArea(
                   child: Column(
                     children: [
-
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         child: Row(
                           children: [
-                            Row(
-                              children: [
-                                IconButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    icon: Image.asset("assets/img/back.png",
-                                        width: 25,
-                                        height: 25,
-                                        color: TColor.gray30))
-                              ],
+                            IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              icon: Icon(Icons.arrow_back,
+                                  color: theme.iconTheme.color),
                             ),
                             const SizedBox(width: 20),
-                            Row(
-                              children: [
-                                Text(
-                                  "Add new income",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: TColor.gray80,
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.w700),
-                                ),
-                              ],
+                            Text(
+                              "Add new income",
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -173,10 +129,10 @@ class _AddIncomeViewState extends State<AddIncomeView> {
                                   const Spacer(),
                                   Text(
                                     sObj["name"],
-                                    style: TextStyle(
-                                        color: TColor.gray60,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.hintColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   )
                                 ],
                               ),
@@ -189,35 +145,30 @@ class _AddIncomeViewState extends State<AddIncomeView> {
                 ),
               ),
 
-
-
-              // Description Field
               Padding(
-                  padding:
-                  const EdgeInsets.only(top: 20, left: 20, right: 20),
-                  child: RoundedTextField(
-                      title: "name",
-                      titleAlign: TextAlign.center,
-                      controller: homeCtrl.descriptionCtrl)),
+                padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
+                child: RoundedTextField(
+                  title: "name",
+                  titleAlign: TextAlign.center,
+                  controller: homeCtrl.descriptionCtrl,
+                ),
+              ),
 
-              // Amount Section
               Padding(
-                  padding:
-                  const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                child: RoundedTextField(
+                  title: "Amount",
+                  titleAlign: TextAlign.center,
+                  controller: homeCtrl.amountCtrl,
+                ),
+              ),
 
-                  child: RoundedTextField(
-                      title: "Amount",
-                      titleAlign: TextAlign.center,
-                      controller: homeCtrl.amountCtrl)),
-
-
-              // Add Buttons
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: PrimaryButton(
-                  title: _isLoading ? "Adding..." : "Add new income",  // Change button text when loading
-                  onPress: _isLoading ? () {} : handleSubmit,    //  Disable button when loading
-                  color: TColor.white,
+                  title: _isLoading ? "Adding..." : "Add new income",
+                  onPress: _isLoading ? () {} : handleSubmit,
+                  color: colorScheme.primary,
                   isLoading: _isLoading,
                 ),
               ),

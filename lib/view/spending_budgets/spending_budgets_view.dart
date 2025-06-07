@@ -7,11 +7,9 @@ import 'package:untitled/common_widget/budgets_row.dart';
 import 'package:untitled/common_widget/custom_arc_180_painter.dart';
 import 'package:untitled/controller/budgetController.dart';
 import 'package:untitled/controller/expense_controller.dart';
-import 'package:untitled/view/add_subscription/add_spending.dart';
 import 'package:untitled/view/add_subscription/add_subscription_view.dart';
 import 'package:untitled/view/budget/add_budget_screen.dart';
 import 'package:untitled/view/budget/update_budget_screen.dart';
-import 'package:untitled/view/settings/settings_view.dart';
 
 class SpendingBudgetsView extends StatefulWidget {
   const SpendingBudgetsView({super.key});
@@ -47,6 +45,11 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.sizeOf(context);
+
+    final theme = Theme.of(context);
+    final textColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
+
+    final backgroundColor = theme.scaffoldBackgroundColor;
 
     return GetBuilder<BudgetController>(builder: (ctrl) {
       final bool hasBudget = ctrl.budgetList.isNotEmpty;
@@ -96,7 +99,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
       });
 
       return Scaffold(
-        backgroundColor: TColor.back,
+        backgroundColor: backgroundColor,
         body: _controller == null
             ? const SizedBox()
             : FadeTransition(
@@ -109,15 +112,6 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
                         child: Row(
                           children: [
                             Spacer(),
-                            // IconButton(
-                            //   onPressed: () => Get.to(() => const SettingsView()),
-                            //   icon: Image.asset(
-                            //     "assets/img/settings.png",
-                            //     width: 25,
-                            //     height: 25,
-                            //     color: TColor.gray30,
-                            //   ),
-                            // ),
                           ],
                         ),
                       ),
@@ -128,9 +122,14 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
                             width: media.width * 0.7,
                             height: media.width * 0.30,
                             child: CustomPaint(
-                              painter: CustomArc180Painter(
+                              painter: CustomArcPainter(
                                 totalBudget: ctrl.totalBudgetAmount.value,
                                 usedBudget: ctrl.usedBudgetAmount.value,
+                                end: (ctrl.totalBudgetAmount.value == 0)
+                                    ? 0
+                                    : (ctrl.usedBudgetAmount.value /
+                                            ctrl.totalBudgetAmount.value)
+                                        .clamp(0.0, 1.0),
                               ),
                             ),
                           ),
@@ -140,7 +139,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
                               Obx(() => Text(
                                     "${ctrl.totalBudgetAmount.value.toStringAsFixed(2)} Rwf budget",
                                     style: TextStyle(
-                                      color: TColor.gray80,
+                                      color: textColor,
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -155,7 +154,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold)),
                       _buildExpenseList(),
-                      _buildAddCategoryButton(),
+                      _buildAddCategoryButton(context),
                       const SizedBox(height: 110),
                     ],
                   ),
@@ -167,22 +166,23 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
 
   Widget _buildBudgetCard(
       BudgetController ctrl, dynamic bObj, BuildContext context) {
+    final theme = Theme.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutExpo,
       margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: TColor.white,
-        border: Border.all(color: TColor.border.withOpacity(0.2)),
-        // borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? TColor.gray80
+            : TColor.back,
       ),
       child: Column(
         children: [
           Obx(() => Text(
                 "${ctrl.usedBudgetAmount.value.toStringAsFixed(2)} Rwf used",
                 style: TextStyle(
-                  color: TColor.gray60,
+                  color: TColor.white,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -191,7 +191,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
           Obx(() => Text(
                 "${ctrl.remainingBudgetAmount.value.toStringAsFixed(2)} Rwf remaining",
                 style: TextStyle(
-                  color: TColor.gray60,
+                  color: theme.hintColor,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -202,10 +202,10 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
             children: [
               OutlinedButton(
                 onPressed: () => Get.to(() => const AddBudgetScreen()),
-                child: const Text("Manage your budget"),
+                child: const Text("ge your budget"),
               ),
               PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert, color: TColor.gray80),
+                icon: Icon(Icons.more_vert, color: theme.iconTheme.color),
                 onSelected: (value) {
                   if (value == 'update' && bObj != null) {
                     DateTime _toDate(dynamic value) {
@@ -259,7 +259,8 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
     });
   }
 
-  Widget _buildAddCategoryButton() {
+  Widget _buildAddCategoryButton(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: DottedBorder(
@@ -267,7 +268,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
         strokeWidth: 1,
         borderType: BorderType.RRect,
         radius: const Radius.circular(16),
-        color: TColor.border.withOpacity(0.1),
+        color: theme.dividerColor.withOpacity(0.1),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () => Get.to(() => const AddSubScriptionView()),
@@ -283,7 +284,11 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(width: 8),
-                Image.asset("assets/img/add.png", width: 12, height: 12)
+                Icon(
+                  Icons.add_circle_outline,
+                  color: theme.iconTheme.color,
+                  size: 20,
+                ),
               ],
             ),
           ),
@@ -292,29 +297,29 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
     );
   }
 
-  void _confirmDeleteBudget(
-      BuildContext context, BudgetController ctrl, dynamic bObj) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Confirm Deletion"),
-          content: const Text("Are you sure you want to delete your budget?"),
-          actions: [
-            TextButton(
-              child: const Text("Cancel"),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            TextButton(
-              child: const Text("Delete", style: TextStyle(color: Colors.red)),
-              onPressed: () {
-                Navigator.of(context).pop();
-                ctrl.deleteBudget(bObj['id'] ?? '');
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _confirmDeleteBudget(
+  //     BuildContext context, BudgetController ctrl, dynamic bObj) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: const Text("Confirm Deletion"),
+  //         content: const Text("Are you sure you want to delete your budget?"),
+  //         actions: [
+  //           TextButton(
+  //             child: const Text("Cancel"),
+  //             onPressed: () => Navigator.of(context).pop(),
+  //           ),
+  //           TextButton(
+  //             child: const Text("Delete", style: TextStyle(color: Colors.red)),
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //               ctrl.deleteBudget(bObj['id'] ?? '');
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 }

@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/controller/budgetController.dart';
 
-
 import '../../controller/app_initialization_controller.dart';
 
 class AddBudgetScreen extends StatefulWidget {
@@ -15,7 +14,6 @@ class AddBudgetScreen extends StatefulWidget {
 }
 
 class _AddBudgetScreenState extends State<AddBudgetScreen> {
-
   final BudgetController budgetCtrl = Get.put(BudgetController());
 
   DateTime? startDate;
@@ -30,7 +28,6 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
   @override
   void initState() {
     super.initState();
-
   }
 
   void handleSubmit() async {
@@ -67,8 +64,6 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
     }
   }
 
-
-
   Future<void> pickStartDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -104,7 +99,6 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     // Ensure initialization happens when the screen is built
     final appInitController = Get.put(AppInitializationController());
     appInitController.initialize();
@@ -116,15 +110,14 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
           backgroundColor: TColor.back,
           elevation: 0,
           title: Text("Add Budget",
-              style: TextStyle(
-                  color: TColor.gray80, fontWeight: FontWeight.w600)),
+              style:
+                  TextStyle(color: TColor.gray80, fontWeight: FontWeight.w600)),
           iconTheme: IconThemeData(color: TColor.gray80),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-
               const SizedBox(height: 15),
               TextField(
                 controller: budgetCtrl.amountCtrl,
@@ -134,9 +127,8 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                   labelStyle: TextStyle(color: TColor.gray60),
                   filled: true,
                   fillColor: Colors.white,
-
-
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),
                     borderSide: BorderSide(color: TColor.gray10),
@@ -180,13 +172,12 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                     minimumSize: const Size.fromHeight(50)),
                 child: _isLoading
                     ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                   
-                    color: Colors.white,
-                  ),
-                )
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                        ),
+                      )
                     : const Text("Save Budget"),
               )
             ],

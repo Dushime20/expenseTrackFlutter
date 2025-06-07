@@ -15,28 +15,25 @@ class SignUpView extends StatefulWidget {
 }
 
 class _SignUpViewState extends State<SignUpView> {
-  TextEditingController textName = TextEditingController();
-  TextEditingController textPhone = TextEditingController();
-  TextEditingController textEmail = TextEditingController();
-  TextEditingController textPassword = TextEditingController();
-  TextEditingController textConfirmPass = TextEditingController();
+  final textName = TextEditingController();
+  final textPhone = TextEditingController();
+  final textEmail = TextEditingController();
+  final textPassword = TextEditingController();
+  final textConfirmPass = TextEditingController();
 
   bool isLoading = false;
 
   @override
-  void dispose(){
-    super.dispose();
+  void dispose() {
     textEmail.dispose();
     textPassword.dispose();
     textConfirmPass.dispose();
     textName.dispose();
     textPhone.dispose();
-
+    super.dispose();
   }
 
   void signUpUser() async {
-
-    // Validate empty fields
     if (textName.text.isEmpty ||
         textPhone.text.isEmpty ||
         textEmail.text.isEmpty ||
@@ -80,7 +77,7 @@ class _SignUpViewState extends State<SignUpView> {
     } else {
       Get.snackbar(
         "Error",
-        res, // Show the actual error message
+        res,
         backgroundColor: Colors.red,
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
@@ -88,118 +85,123 @@ class _SignUpViewState extends State<SignUpView> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    var media = MediaQuery.sizeOf(context);
+    final theme = Theme.of(context);
+    final textColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
+    final labelColor = theme.textTheme.bodyMedium?.color ?? Colors.black54;
+    final hintColor = theme.hintColor;
+    final dividerColor = theme.dividerColor;
+    final scaffoldBackground = theme.scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBackground,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 30),
-
-                    const Center(
-                      child: Text(
-                        "Welcome, please Sign Up",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Input Fields
-                    _buildTextField("Username", "Enter your username", textName,
-                        TextInputType.text),
-                    const SizedBox(height: 20),
-                    _buildTextField("Phone Number", "Enter your phone",
-                        textPhone, TextInputType.phone),
-                    const SizedBox(height: 20),
-                    _buildTextField("Email", "Enter your email", textEmail,
-                        TextInputType.emailAddress),
-                    const SizedBox(height: 20),
-                    _buildTextField("Password", "eg:Hello@2024",
-                        textPassword, TextInputType.visiblePassword,
-                        obscureText: true),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                        "Confirm Password",
-                        "Re-enter your password",
-                        textConfirmPass,
-                        TextInputType.visiblePassword,
-                        obscureText: true),
-
-                    const SizedBox(height: 20),
-
-                    PrimaryButton(
-                      title: "Sign Up",
-                      onPress: () {
-                        signUpUser();
-                      },
-                      color: Colors.white,
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    Center(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 20),
                       child: Column(
-                        // mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                "Already have an account?",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          const SizedBox(height: 30),
+                          Center(
+                            child: Text(
+                              "Welcome, please Sign Up",
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
-                              SecondaryButton(
-                                title: "Sign In",
-                                onPress: () {
-                                  Get.to(()=> const SignInView());
-                                },
-                                color: Colors
-                                    .green, // Matching the login button color
-                              ),
-                            ],
+                            ),
                           ),
+                          const SizedBox(height: 20),
+
+                          // Input Fields
+                          _buildTextField(
+                              "Username", "Enter your username", textName,
+                              TextInputType.text, labelColor, hintColor, dividerColor),
+                          const SizedBox(height: 20),
+                          _buildTextField(
+                              "Phone Number", "Enter your phone", textPhone,
+                              TextInputType.phone, labelColor, hintColor, dividerColor),
+                          const SizedBox(height: 20),
+                          _buildTextField(
+                              "Email", "Enter your email", textEmail,
+                              TextInputType.emailAddress, labelColor, hintColor, dividerColor),
+                          const SizedBox(height: 20),
+                          _buildTextField(
+                              "Password", "eg:Hello@2024", textPassword,
+                              TextInputType.visiblePassword,
+                              labelColor, hintColor, dividerColor,
+                              obscureText: true),
+                          const SizedBox(height: 20),
+                          _buildTextField(
+                              "Confirm Password",
+                              "Re-enter your password",
+                              textConfirmPass,
+                              TextInputType.visiblePassword,
+                              labelColor,
+                              hintColor,
+                              dividerColor,
+                              obscureText: true),
+
+                          const SizedBox(height: 20),
+
+                          PrimaryButton(
+                            title: "Sign Up",
+                            onPress: signUpUser,
+                            color: theme.primaryColor,
+                          ),
+
+                          const SizedBox(height: 30),
+
+                          Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Already have an account?",
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: labelColor,
+                                  ),
+                                ),
+                                SecondaryButton(
+                                  title: "Sign In",
+                                  onPress: () {
+                                    Get.to(() => const SignInView());
+                                  },
+                                  color: theme.primaryColor,
+                                ),
+                              ],
+                            ),
+                          )
                         ],
                       ),
-                    )
-
-                    // Extra bottom space
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _buildTextField(String label, String placeholder,
-      TextEditingController controller, TextInputType keyboardType,
-      {bool obscureText = false}) {
+  Widget _buildTextField(
+    String label,
+    String placeholder,
+    TextEditingController controller,
+    TextInputType keyboardType,
+    Color labelColor,
+    Color hintColor,
+    Color dividerColor, {
+    bool obscureText = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -207,8 +209,8 @@ class _SignUpViewState extends State<SignUpView> {
           children: [
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.black87,
+              style: TextStyle(
+                color: labelColor,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -219,9 +221,10 @@ class _SignUpViewState extends State<SignUpView> {
                 controller: controller,
                 keyboardType: keyboardType,
                 obscureText: obscureText,
-                style: const TextStyle(fontSize: 15),
+                style: TextStyle(fontSize: 15, color: labelColor),
                 decoration: InputDecoration(
                   hintText: placeholder,
+                  hintStyle: TextStyle(color: hintColor),
                   contentPadding: const EdgeInsets.only(bottom: 5),
                   border: InputBorder.none,
                 ),
@@ -231,7 +234,7 @@ class _SignUpViewState extends State<SignUpView> {
         ),
         Container(
           height: 1,
-          color: TColor.gray10,
+          color: dividerColor,
         ),
         const SizedBox(height: 5),
       ],

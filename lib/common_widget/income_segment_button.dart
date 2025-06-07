@@ -20,14 +20,17 @@ class IncomeSegmentButton extends StatelessWidget {
         alignment: Alignment.center,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white,
+                color: Theme.of(context).brightness == Brightness.dark ? TColor.gray80 : TColor.white,
+
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all( color: Theme.of(context).brightness == Brightness.dark ? TColor.gray80:Colors.grey.shade300
+),
         ),
         child: Text(
           title,
-          style: const TextStyle(
-            color: Colors.black87,
+          style:  TextStyle(
+                     color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray80,
+
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),

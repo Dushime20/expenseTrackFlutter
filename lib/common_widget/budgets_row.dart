@@ -29,7 +29,8 @@ class BudgetsRow extends StatelessWidget {
               border: Border.all(
                 color: TColor.border.withOpacity(0.05),
               ),
-              color: TColor.white,
+              color: Theme.of(context).brightness == Brightness.dark ? TColor.gray80 : TColor.white
+,
               borderRadius: BorderRadius.circular(4),
             ),
             alignment: Alignment.center,
@@ -42,7 +43,8 @@ class BudgetsRow extends StatelessWidget {
                     Text(
                       bObj["category"] ?? "",
                       style: TextStyle(
-                        color: TColor.gray80,
+                        color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray60,
+
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -50,7 +52,7 @@ class BudgetsRow extends StatelessWidget {
                     Text(
                       "${bObj["budget"]} Rwf",
                       style: TextStyle(
-                        color: TColor.gray60,
+                       color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray60,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -64,7 +66,7 @@ class BudgetsRow extends StatelessWidget {
                     Text(
                       "Used: ${usedAmount.toStringAsFixed(0)} Rwf",
                       style: TextStyle(
-                        color: TColor.gray80,
+                      color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray60,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -72,7 +74,7 @@ class BudgetsRow extends StatelessWidget {
                     Text(
                       "Remaining: ${remainingAmount.toStringAsFixed(0)} Rwf",
                       style: TextStyle(
-                        color: TColor.gray60,
+                       color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray60,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),

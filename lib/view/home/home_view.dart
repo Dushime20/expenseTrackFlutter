@@ -2,20 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:untitled/common/color_extension.dart';
-import 'package:untitled/common_widget/custom_arc_painter.dart';
-import 'package:untitled/common_widget/income_barchat.dart';
-import 'package:untitled/common_widget/income_home_row.dart';
-import 'package:untitled/common_widget/segment_button.dart';
-import 'package:untitled/common_widget/up_coming_bill_row.dart';
-import 'package:untitled/controller/expense_controller.dart';
-import 'package:untitled/controller/home_controller.dart';
 import 'package:untitled/controller/spending_controller.dart';
-import 'package:untitled/view/add_subscription/update_expense.dart';
-import 'package:untitled/view/add_subscription/update_income_view.dart';
+import 'package:untitled/controller/home_controller.dart';
+import 'package:untitled/controller/theme_controller.dart';
 
-import 'package:untitled/view/settings/settings_view.dart';
-
+import '../../common_widget/custom_arc_painter.dart';
+import '../../common_widget/income_barchat.dart';
+import '../../common_widget/income_home_row.dart';
+import '../../common_widget/segment_button.dart';
+import '../../common_widget/up_coming_bill_row.dart';
 import '../../common_widget/expense_barchat.dart';
+import '../../view/add_subscription/update_expense.dart';
+import '../../view/add_subscription/update_income_view.dart';
+import '../../view/settings/settings_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -27,21 +26,28 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   bool isIncome = true;
   final SpendingController spendingCtrl = Get.put(SpendingController());
+  final ThemeController themeController = Get.find();
 
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.sizeOf(context);
 
+    final textColor =
+        Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
+    final grayColor = Theme.of(context).disabledColor; // for gray60 replacement
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final cardBackground = Theme.of(context).cardColor;
+
     return GetBuilder<HomeController>(builder: (ctrl) {
       return Scaffold(
-        backgroundColor: TColor.white,
+        backgroundColor: backgroundColor,
         body: SingleChildScrollView(
           child: Column(
             children: [
               Container(
                 height: media.width * 0.8,
                 decoration: BoxDecoration(
-                  color: TColor.back,
+                  color: TColor.gray60.withOpacity(0.1),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(25),
                     bottomRight: Radius.circular(25),
@@ -58,7 +64,9 @@ class _HomeViewState extends State<HomeView> {
                           width: media.width * 0.7,
                           height: media.width * 0.6,
                           child: CustomPaint(
-                            painter: CustomArcPainter(end: 0),
+                            painter: CustomArcPainter(
+                              end: 0.6, // 60% (0.0 to 1.0)
+                            ),
                           ),
                         ),
                         Padding(
@@ -66,6 +74,19 @@ class _HomeViewState extends State<HomeView> {
                           child: Row(
                             children: [
                               const Spacer(),
+                              // // Theme toggle button
+                              // Obx(() => IconButton(
+                              //       icon: Icon(
+                              //         themeController.themeMode.value == ThemeMode.dark
+                              //             ? Icons.light_mode
+                              //             : Icons.dark_mode,
+                              //         color: grayColor,
+                              //       ),
+                              //       onPressed: () {
+                              //         themeController.toggleTheme();
+                              //       },
+                              //     )),
+                              // Settings icon
                               IconButton(
                                 onPressed: () {
                                   Navigator.push(
@@ -76,11 +97,10 @@ class _HomeViewState extends State<HomeView> {
                                     ),
                                   );
                                 },
-                                icon: Image.asset(
-                                  "assets/img/settings.png",
-                                  width: 25,
-                                  height: 25,
-                                  color: TColor.gray60,
+                                icon: Icon(
+                                  Icons.settings,
+                                  size: 25,
+                                  color: grayColor,
                                 ),
                               ),
                             ],
@@ -94,8 +114,8 @@ class _HomeViewState extends State<HomeView> {
                         const SizedBox(height: 10),
                         Obx(() => Text(
                               "${spendingCtrl.totalAmountSpending.value.toStringAsFixed(2)} Frw",
-                              style: const TextStyle(
-                                color: Colors.black,
+                              style: TextStyle(
+                                color: textColor,
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -104,7 +124,7 @@ class _HomeViewState extends State<HomeView> {
                         Text(
                           "This monthly Expense",
                           style: TextStyle(
-                            color: TColor.gray60,
+                            color: grayColor,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -112,8 +132,8 @@ class _HomeViewState extends State<HomeView> {
                         const SizedBox(height: 10),
                         Obx(() => Text(
                               "${ctrl.totalIncome.value.toStringAsFixed(0)} Frw",
-                              style: const TextStyle(
-                                color: Colors.black,
+                              style: TextStyle(
+                                color: textColor,
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -122,17 +142,14 @@ class _HomeViewState extends State<HomeView> {
                         Text(
                           "This monthly income",
                           style: TextStyle(
-                            color: TColor.gray60,
+                            color: grayColor,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(
-                      height: 20.0,
-                    ),
-                    // Replace this inside the Stack (the one under the Container)
+                    const SizedBox(height: 20.0),
                     Positioned(
                       bottom: 5,
                       left: 20,
@@ -140,15 +157,25 @@ class _HomeViewState extends State<HomeView> {
                       child: Row(
                         children: [
                           Obx(() => _buildStatCard(
-                              "Active expenses",
-                              spendingCtrl.totalSpendingCount.value
-                                  .toString())),
+                              " expenses",
+                              spendingCtrl.totalSpendingCount.value.toString(),
+                              cardBackground,
+                              textColor,
+                              grayColor)),
                           const SizedBox(width: 8),
-                          Obx(() => _buildStatCard("Low expense",
-                              "${spendingCtrl.lowestSpending.value.toStringAsFixed(2)} Frw")),
+                          Obx(() => _buildStatCard(
+                              "Low expense",
+                              "${spendingCtrl.lowestSpending.value.toStringAsFixed(2)} Frw",
+                              cardBackground,
+                              textColor,
+                              grayColor)),
                           const SizedBox(width: 8),
-                          Obx(() => _buildStatCard("High expense",
-                              "${spendingCtrl.highestSpending.value.toStringAsFixed(2)} Frw")),
+                          Obx(() => _buildStatCard(
+                              "High expense",
+                              "${spendingCtrl.highestSpending.value.toStringAsFixed(2)} Frw",
+                              cardBackground,
+                              textColor,
+                              grayColor)),
                         ],
                       ),
                     ),
@@ -164,7 +191,9 @@ class _HomeViewState extends State<HomeView> {
                 width: 250,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 decoration: BoxDecoration(
-                  color: TColor.back,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? TColor.gray60
+                      : TColor.back,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -188,29 +217,31 @@ class _HomeViewState extends State<HomeView> {
                             isIncome = false;
                           });
                         },
-                        isActive: !isIncome, 
+                        isActive: !isIncome,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              // Conditional content
               if (!isIncome)
                 Obx(() {
                   if (ctrl.income.isEmpty) {
-                    return const Center(
-                        child: Text("No Income available this Month"));
+                    return Center(
+                      child: Text(
+                        "No Income available this Month",
+                        style: TextStyle(color: textColor),
+                      ),
+                    );
                   }
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
-                        height: 300, 
+                        height: 300,
                         child: IncomeBarChart(),
                       ),
                       ListView.builder(
-    
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         itemCount: ctrl.income.length,
@@ -270,8 +301,12 @@ class _HomeViewState extends State<HomeView> {
               if (isIncome)
                 Obx(() {
                   if (spendingCtrl.spending.isEmpty) {
-                    return const Center(
-                        child: Text("No Spending available this Month"));
+                    return Center(
+                      child: Text(
+                        "No Spending available this Month",
+                        style: TextStyle(color: textColor),
+                      ),
+                    );
                   }
 
                   return Column(
@@ -282,7 +317,6 @@ class _HomeViewState extends State<HomeView> {
                         child: ExpenseBarChart(),
                       ),
                       ListView.builder(
-                        // padding: const EdgeInsets.symmetric(horizontal: 20),
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         itemCount: spendingCtrl.spending.length,
@@ -344,31 +378,31 @@ class _HomeViewState extends State<HomeView> {
     });
   }
 
-  Widget _buildStatCard(String title, String value) {
+  Widget _buildStatCard(String title, String value, Color background,
+      Color textColor, Color grayColor) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
         decoration: BoxDecoration(
-          color: TColor.back,
-          border: Border.all(color: TColor.gray10),
+          color: background,
+          border: Border.all(color: grayColor.withOpacity(0.2)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(title,
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: grayColor,
+                    fontSize: 13)),
+            const SizedBox(height: 5),
             Text(
-              title,
-              style: TextStyle(color: TColor.gray60, fontSize: 10),
-            ),
-            const SizedBox(height: 6),
-            Center(
-              child: Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
-                ),
+              value,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: textColor,
+                fontSize: 16,
               ),
             ),
           ],

@@ -34,7 +34,8 @@ class IncomeHomeRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           height: 64,
           decoration: BoxDecoration(
-            color: TColor.back,
+            color: Theme.of(context).brightness == Brightness.dark ? TColor.gray80 : TColor.back,
+
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
@@ -54,7 +55,7 @@ class IncomeHomeRow extends StatelessWidget {
                     Text(
                       monthFormat.format(date),
                       style: TextStyle(
-                        color: TColor.white,
+                          color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray60,
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
@@ -62,7 +63,7 @@ class IncomeHomeRow extends StatelessWidget {
                     Text(
                       dayFormat.format(date),
                       style: TextStyle(
-                        color: TColor.gray80,
+                        color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray60,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -75,7 +76,7 @@ class IncomeHomeRow extends StatelessWidget {
                 child: Text(
                   sObj["name"] ?? "",
                   style: TextStyle(
-                    color: TColor.gray60,
+                    color: Theme.of(context).brightness == Brightness.dark ? TColor.white : TColor.gray60,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),

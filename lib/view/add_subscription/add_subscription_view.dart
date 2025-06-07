@@ -6,16 +6,10 @@ import 'package:untitled/common_widget/income_segment_button.dart';
 import 'package:untitled/common_widget/primary_button.dart';
 import 'package:untitled/common_widget/rounded_textfield.dart';
 import 'package:untitled/controller/expense_controller.dart';
-
 import 'package:untitled/controller/home_controller.dart';
-import 'package:untitled/model/spending/spending.dart';
 import 'package:untitled/view/add_subscription/add_income.dart';
 import 'package:untitled/view/add_subscription/add_spending.dart';
 import 'package:untitled/view/spending_budgets/spending_budgets_view.dart';
-
-import '../../common_widget/segment_button.dart';
-
-
 
 class AddSubScriptionView extends StatefulWidget {
   const AddSubScriptionView({super.key});
@@ -25,9 +19,10 @@ class AddSubScriptionView extends StatefulWidget {
 }
 
 class _AddSubScriptionViewState extends State<AddSubScriptionView> {
-
   bool isIncome = true;
-  List subArr = [
+
+  final ExpenseController expenseCtrl = Get.put(ExpenseController());
+  final List<Map<String, String>> subArr = [
     {"name": "Salary", "icon": "assets/img/money.jpg"},
     {"name": "House rent", "icon": "assets/img/house.jpeg"},
     {"name": "Clothes", "icon": "assets/img/clothes.jpg"},
@@ -35,110 +30,83 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
     {"name": "NetFlix", "icon": "assets/img/netflix_logo.png"}
   ];
 
-
-
-  final ExpenseController expenseCtrl = Get.put(ExpenseController());
-
-
-
   bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-  }
-
 
   String? selectedCategory;
 
   void handleSubmit() async {
-
-    print("add expense button is clicked");
-
-
-
-    if (expenseCtrl.categoryCtrl.text.trim().isEmpty || expenseCtrl.amountCtrl.text.trim().isEmpty) {
+    if (expenseCtrl.categoryCtrl.text.trim().isEmpty ||
+        expenseCtrl.amountCtrl.text.trim().isEmpty) {
       Get.snackbar("Error", "Please enter a description",
-          colorText: TColor.secondary);
+          colorText: Theme.of(context).colorScheme.error);
       return;
     }
     setState(() {
       _isLoading = true;
     });
-     final addExpense = await expenseCtrl.addExpense();
+
+    final addExpense = await expenseCtrl.addExpense();
+
     setState(() {
       _isLoading = false;
     });
-    if(addExpense){
+
+    if (addExpense) {
       Get.snackbar("Success", "Transaction added successfully",
-          colorText: TColor.line);
+          colorText: Theme.of(context).colorScheme.primary);
+      Get.to(() => const SpendingBudgetsView());
 
-          Get.to(()=>SpendingBudgetsView());
-      // Reset state
-      setState(() {
-
-        expenseCtrl.categoryCtrl.clear();
-        expenseCtrl.amountCtrl.clear();
-      });
-
+      expenseCtrl.categoryCtrl.clear();
+      expenseCtrl.amountCtrl.clear();
     }
-
   }
-
 
   @override
   Widget build(BuildContext context) {
-
-    // Ensure initialization happens when the screen is built
-    //
-
     var media = MediaQuery.sizeOf(context);
+    final theme = Theme.of(context);
+    final textColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
+    final cardColor = theme.cardColor;
+    final bgColor = theme.scaffoldBackgroundColor;
+    final borderColor = theme.dividerColor;
+
     return GetBuilder<HomeController>(builder: (_) {
       return Scaffold(
-        backgroundColor: TColor.back,
+        backgroundColor: bgColor,
         body: SingleChildScrollView(
           child: Column(
             children: [
-              // Header & Carousel
               Container(
                 decoration: BoxDecoration(
-                    color: TColor.white,
-                    borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(25),
-                        bottomRight: Radius.circular(25))),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? TColor.gray80
+                      : TColor.back,
+                  borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(25),
+                      bottomRight: Radius.circular(25)),
+                ),
                 child: SafeArea(
                   child: Column(
                     children: [
-
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         child: Row(
                           children: [
-                            Row(
-                              children: [
-                                IconButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    icon: Image.asset("assets/img/back.png",
-                                        width: 25,
-                                        height: 25,
-                                        color: TColor.gray30))
-                              ],
+                            IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              icon: Image.asset(
+                                "assets/img/back.png",
+                                width: 25,
+                                height: 25,
+                                color: theme.iconTheme.color,
+                              ),
                             ),
                             const SizedBox(width: 20),
-                            Row(
-                              children: [
-                                Text(
-                                  "Set your expense category",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: TColor.gray80,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w600),
-                                ),
-                              ],
+                            Text(
+                              "Set your expense category",
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ],
                         ),
@@ -167,21 +135,20 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
                                     child: Image.asset(
-                                      sObj["icon"],
+                                      sObj["icon"]!,
                                       width: media.width * 0.4,
                                       height: media.width * 0.4,
                                       fit: BoxFit.cover,
                                     ),
                                   ),
                                   const Spacer(),
-
                                   Text(
-                                    sObj["name"],
-                                    style: TextStyle(
-                                        color: TColor.gray60,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600),
-                                  )
+                                    sObj["name"]!,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.hintColor,
+                                    ),
+                                  ),
                                 ],
                               ),
                             );
@@ -192,146 +159,70 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                   ),
                 ),
               ),
-             SizedBox(height: 20,),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16), // margin on both sides
-                // child: Container(
-                //   alignment: Alignment.center, // center content inside container
-                //   padding: const EdgeInsets.all(10),
-                //   decoration: BoxDecoration(
-                //     color: TColor.back,
-                //     borderRadius: BorderRadius.circular(16),
-                //     border: Border.all(color: Colors.grey.shade300),
-                //   ),
-                //   child: Row(
-                //     mainAxisAlignment: MainAxisAlignment.center,
-                //     children: [
-                //       InkWell(
-                //         onTap: () {
-                //           Get.to(() => const AddSpendingView());
-                //         },
-                //         child: Container(
-                //           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                //           decoration: BoxDecoration(
-                //             border: Border.all(color: TColor.line),
-                //             color: TColor.back,
-                //             borderRadius: BorderRadius.circular(16),
-                //           ),
-                //           child: const Text(
-                //             "Add your subCategory",
-                //             style: TextStyle(
-                //               color: Colors.black87,
-                //               fontSize: 12,
-                //               fontWeight: FontWeight.w600,
-                //             ),
-                //           ),
-                //         ),
-                //       ),
-                //       const SizedBox(width: 20),
-                //       InkWell(
-                //         onTap: () {
-                //           Get.to(() => const AddIncomeView());
-                //         },
-                //         child: Container(
-                //           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                //           decoration: BoxDecoration(
-                //             border: Border.all(color: TColor.line),
-                //             color: TColor.back,
-                //             borderRadius: BorderRadius.circular(16),
-                //           ),
-                //           child: const Text(
-                //             "Add your income",
-                //             style: TextStyle(
-                //               color: Colors.black87,
-                //               fontSize: 12,
-                //               fontWeight: FontWeight.w600,
-                //             ),
-                //           ),
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
+              const SizedBox(height: 20),
 
-                child:  Container(
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 10),
-                  height: 45,
-                  width: 250,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: TColor.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: IncomeSegmentButton(
-                          title: 'Add subCategory',
-                          onPress: () {
-                            setState(() {
-                              Get.to(() => const AddSpendingView());
-                              
-                            });
-                          },
-                        
+              /// Segment Button
+              Container(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                height: 45,
+                width: 250,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark ? TColor.gray60 : TColor.back,
 
-                        ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: IncomeSegmentButton(
+                        title: 'Add subCategory',
+                        onPress: () => Get.to(() => const AddSpendingView()),
                       ),
-                      Expanded(
-                        child: IncomeSegmentButton(
-                          title: 'add Income',
-                          onPress: () {
-                            setState(() {
-                              Get.to(() => const AddIncomeView());
-                              
-                            });
-                          },
-                         
-                        ),
+                    ),
+                    Expanded(
+                      child: IncomeSegmentButton(
+                        title: 'Add Income',
+                        onPress: () => Get.to(() => const AddIncomeView()),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
-
-
-              // Description Field
+              /// Category input
               Padding(
-                  padding:
-                  const EdgeInsets.only(top: 20, left: 20, right: 20),
-                  child: RoundedTextField(
-                      title: "category",
-                      titleAlign: TextAlign.center,
-                      controller: expenseCtrl.categoryCtrl
-                  )),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: RoundedTextField(
+                  title: "Category",
+                  titleAlign: TextAlign.center,
+                  controller: expenseCtrl.categoryCtrl,
+                ),
+              ),
 
-              // Amount Section
+              /// Amount input
               Padding(
                 padding:
-                const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                child: RoundedTextField(
+                  title: "Amount",
+                  titleAlign: TextAlign.center,
+                  controller: expenseCtrl.amountCtrl,
+                ),
+              ),
 
-                  child: RoundedTextField(
-                      title: "Amount",
-                      titleAlign: TextAlign.center,
-                      controller: expenseCtrl.amountCtrl
-                  )),
-
-
-              // Add Buttons
-
+              /// Add Button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: PrimaryButton(
                   title: _isLoading ? "Adding..." : "Add new Expense",
-                  onPress: _isLoading ? () {}: handleSubmit,
-                  color: TColor.white,
+                  onPress: _isLoading ? () {} : handleSubmit,
+                  color: textColor,
                   isLoading: _isLoading,
                 ),
               ),
               const SizedBox(height: 20),
-
             ],
           ),
         ),
