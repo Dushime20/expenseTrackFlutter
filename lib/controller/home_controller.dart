@@ -23,13 +23,13 @@ class HomeController extends GetxController{
   var monthlyIncome = 0.0.obs;
 
   var totalIncome = 0.0.obs;
-
+  
+  // Move totalSavings INSIDE the class
+  var totalSavings = 0.0.obs;
 
   List<Expense> expense = [];
 
   RxList<Income> income = <Income>[].obs;
-
-
 
   void updateAmount(double newVal) {
     amountVal = newVal;
@@ -37,21 +37,24 @@ class HomeController extends GetxController{
   }
 
   @override
-  Future<void> onInit() async {
-    super.onInit();
+ Future<void> onInit() async {
+  print("🚀 HomeController onInit() started");
+  super.onInit();
 
+  print("📊 Starting calculateMonthlyIncome...");
+  await calculateMonthlyIncome();
+  print("✅ calculateMonthlyIncome completed");
 
-   await calculateMonthlyIncome();
-   await fetchIncome();
+  print("💰 Starting fetchIncome...");
+  await fetchIncome();
+  print("✅ fetchIncome completed");
 
+  print("💵 Starting fetchTotalSavings...");
+  await fetchTotalSavings();
+  print("✅ fetchTotalSavings completed");
 
-
-  }
-
-
-
-
-
+  print("🏁 HomeController onInit() finished");
+}
 
   Future<bool> addIncome() async {
     try {
@@ -84,11 +87,9 @@ class HomeController extends GetxController{
     }
   }
 
-
   //update income
   Future<void> updateIncome({
     required String incomeId,
-
     required String newName,
     required double newAmount,
   }) async {
@@ -101,7 +102,6 @@ class HomeController extends GetxController{
         amount: newAmount,
         date: DateTime.now(), // Optionally keep original date if needed
         userId: auth.currentUser!.uid,
-
       );
 
       final incomeJson = updatedIncome.toJson();
@@ -116,7 +116,6 @@ class HomeController extends GetxController{
       print(e);
     }
   }
-
 
   // total income in month
   Future<void> calculateMonthlyIncome() async {
@@ -152,11 +151,6 @@ class HomeController extends GetxController{
     return null;
   }
 
-
-
-
-
-
   Future<void>fetchIncome() async {
     try {
       final currentUser = auth.currentUser;
@@ -190,14 +184,13 @@ class HomeController extends GetxController{
       }
 
     } catch (e) {
-
       print("Error fetching income: $e");
     } finally {
       update();
     }
   }
 
-//delete income
+  //delete income
   deleteIncome(String id) async{
     try {
       await incomeCollection.doc(id).delete();
@@ -210,10 +203,103 @@ class HomeController extends GetxController{
     }
   }
 
-
   setValueDefault(){
     amountVal = 0.0;
     descriptionCtrl.clear();
     update();
   }
+  
+  // Move fetchTotalSavings method INSIDE the class
+
+// Replace your fetchTotalSavings method with this enhanced debug version
+Future<void> testBasicFirestoreConnection() async {
+  print("🔥 Testing Firestore connection...");
+  try {
+    // Test basic Firestore connection
+    DocumentSnapshot testDoc = await firestore.collection('test').doc('test').get();
+    print("✅ Firestore connection working");
+    
+    // Test user authentication
+    User? currentUser = auth.currentUser;
+    if (currentUser != null) {
+      print("✅ User is logged in: ${currentUser.uid}");
+    } else {
+      print("❌ No user logged in");
+    }
+    
+  } catch (e) {
+    print("❌ Firestore connection error: $e");
+  }
+}
+
+Future<void> fetchTotalSavings() async {
+  try {
+    String? userId = auth.currentUser?.uid;
+    print("🔍 Debug - Current User ID: $userId");
+    
+    if (userId != null) {
+      // First, let's check if the collection exists and has any documents
+      QuerySnapshot allSavingsSnapshot = await firestore
+          .collection('saving')
+          .get();
+      
+      print("🔍 Debug - Total documents in 'saving' collection: ${allSavingsSnapshot.docs.length}");
+      
+      // Print all documents to see the structure
+      for (var doc in allSavingsSnapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        print("🔍 Debug - Document ID: ${doc.id}");
+        print("🔍 Debug - Document Data: $data");
+        print("🔍 Debug - UserId in doc: ${data['userId']}");
+        print("🔍 Debug - Amount in doc: ${data['amount']}");
+        print("---");
+      }
+      
+      // Now query for current user's savings
+      QuerySnapshot savingsSnapshot = await firestore
+          .collection('saving')
+          .where('userId', isEqualTo: userId)
+          .get();
+      
+      print("🔍 Debug - Documents for current user: ${savingsSnapshot.docs.length}");
+      
+      double totalSavingsAmount = 0.0;
+      
+      for (var doc in savingsSnapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        print("🔍 Debug - Processing doc: ${doc.id}");
+        print("🔍 Debug - Raw amount value: ${data['amount']} (${data['amount'].runtimeType})");
+        
+        double amount = 0.0;
+        
+        // Handle different data types for amount
+        if (data['amount'] is int) {
+          amount = (data['amount'] as int).toDouble();
+        } else if (data['amount'] is double) {
+          amount = data['amount'] as double;
+        } else if (data['amount'] is String) {
+          amount = double.tryParse(data['amount']) ?? 0.0;
+        } else {
+          amount = (data['amount'] ?? 0.0).toDouble();
+        }
+        
+        print("🔍 Debug - Converted amount: $amount");
+        totalSavingsAmount += amount;
+        print("🔍 Debug - Running total: $totalSavingsAmount");
+      }
+      
+      totalSavings.value = totalSavingsAmount;
+      print("🔍 Debug - Final total savings: $totalSavingsAmount");
+      print("🔍 Debug - totalSavings.value set to: ${totalSavings.value}");
+      
+    } else {
+      print("❌ Debug - No user logged in");
+      totalSavings.value = 0.0;
+    }
+  } catch (e) {
+    print('❌ Error fetching savings: $e');
+    print('❌ Error type: ${e.runtimeType}');
+    totalSavings.value = 0.0;
+  }
+}
 }

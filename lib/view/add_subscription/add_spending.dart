@@ -8,6 +8,7 @@ import 'package:untitled/controller/expense_controller.dart';
 import 'package:untitled/controller/home_controller.dart';
 import 'package:untitled/controller/spending_controller.dart';
 import 'package:untitled/view/main_tab/main_tab_view.dart';
+import 'package:untitled/view/spending_budgets/spending_budgets_view.dart';
 
 class AddSpendingView extends StatefulWidget {
   const AddSpendingView({super.key});
@@ -73,7 +74,9 @@ class _AddSpendingViewState extends State<AddSpendingView> {
         backgroundColor: Theme.of(context).colorScheme.primary,
       );
 
-      Get.to(() => MainTabView());
+      
+
+      Get.to(() => SpendingBudgetsView());
 
       setState(() {
         spendingCtrl.subNameCtrl.clear();

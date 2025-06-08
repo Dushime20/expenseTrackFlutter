@@ -8,6 +8,7 @@ import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/controller/budgetController.dart';
 import 'package:untitled/controller/expense_controller.dart';
 import 'package:untitled/controller/home_controller.dart';
+import 'package:untitled/controller/saving_contoller.dart';
 import 'package:untitled/controller/spending_controller.dart';
 import 'package:untitled/controller/theme_controller.dart';
 import 'package:untitled/firebase_option.dart';
@@ -29,6 +30,8 @@ void main() async {
   Get.put(SpendingController());
   Get.put(ExpenseController());
   Get.put(BudgetController());
+    Get.put(SavingController()); // very important
+ 
 
   runApp(const MyApp());
 }

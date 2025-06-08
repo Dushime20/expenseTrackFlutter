@@ -304,7 +304,14 @@ class ExpenseController extends GetxController {
         print("CATEGORY: ${item['category']}");
         print("SPENDINGS: ${item['spendings']}");
       }
+for (var item in result) {
+  double remaining = item['remaining'] ?? 0.0;
+  String categoryId = item['expenseId'] ?? '';  // Use expenseId as categoryId
 
+  if (remaining > 0 && categoryId.isNotEmpty) {
+    await addSaving(categoryId: categoryId, amount: remaining);
+  }
+}
       return result;
     } catch (e) {
       print("Error in fetchExpenseStatusForCurrentMonth: $e");
@@ -323,5 +330,48 @@ class ExpenseController extends GetxController {
       Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
       print(e);
     }
+  }
+}
+Future<void> addSaving({
+  required String categoryId,
+
+  required double amount,
+}) async {
+  try {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      print("User not logged in");
+      return;
+    }
+
+    final savingCollection = FirebaseFirestore.instance.collection('saving');
+
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0);
+
+    final existing = await savingCollection
+        .where('userId', isEqualTo: user.uid)
+        .where('categoryId', isEqualTo: categoryId)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+        .get();
+
+    if (existing.docs.isNotEmpty) {
+      print("Saving already exists for this category this month");
+      return;
+    }
+
+    await savingCollection.add({
+      'userId': user.uid,
+      'categoryId': categoryId,
+      'categoryName': categoryId, // optional, just for display
+      'amount': amount,
+      'date': Timestamp.now(),
+    });
+
+    print("Saving added for category: $categoryId");
+  } catch (e) {
+    print("Error adding saving: $e");
   }
 }
