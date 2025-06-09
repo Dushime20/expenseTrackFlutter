@@ -6,6 +6,7 @@ class SavingModel {
   final double amount;
   final DateTime date;
   final String userId;
+    final String categoryName;
 
   SavingModel({
     required this.id,
@@ -13,6 +14,7 @@ class SavingModel {
     required this.amount,
     required this.date,
     required this.userId,
+      required this.categoryName,
   });
 
   factory SavingModel.fromFirestore(DocumentSnapshot doc) {
@@ -23,15 +25,18 @@ class SavingModel {
       amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
       date: (data['date'] as Timestamp).toDate(),
       userId: data['userId'] ?? '',
+        categoryName:  data['categoryName'] ?? '',
     );
   }
 
-  Map<String, dynamic> toFirestore() {
-    return {
-      'categoryId': categoryId,
-      'amount': amount,
-      'date': Timestamp.fromDate(date),
-      'userId': userId,
-    };
-  }
+Map<String, dynamic> toFirestoreWithId() {
+  return {
+    'id': id,  
+    'categoryId': categoryId,
+    'amount': amount,
+    'date': Timestamp.fromDate(date),
+    'userId': userId,
+    'categoryName': categoryName,
+  };
+}
 }

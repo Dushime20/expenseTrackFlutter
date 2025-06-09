@@ -149,47 +149,68 @@ class ExpenseController extends GetxController {
   }
 
   // fetch category name of current month expense for logged in user
-  Future<List<Map<String, String>>> fetchCurrentMonthExpenseCategories() async {
-    try {
-      final user = auth.currentUser;
-      if (user == null) {
-        print('User not logged in');
-        return [];
-      }
-
-      final userId = user.uid;
-      final now = DateTime.now();
-
-      // Define the date range for the current month
-      final startOfMonth = DateTime(now.year, now.month, 1);
-      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-
-      final snapshot = await expenseCollection
-          .where('userId', isEqualTo: userId)
-          .where('date',
-              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
-          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
-          .get();
-
-      final List<Map<String, String>> categories = [];
-
-      for (var doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final categoryId = doc.id;
-        final category = data['category'] as String?;
-        if (category != null && category.trim().isNotEmpty) {
-          categories.add({
-            'category': category,
-            'categoryId': categoryId,
-          });
-        }
-      }
-
-      return categories;
-    } catch (e) {
+ Future<List<Map<String, String>>> fetchCurrentMonthExpenseCategories() async {
+  try {
+    final user = auth.currentUser;
+    if (user == null) {
+      print('User not logged in');
       return [];
     }
+
+    final userId = user.uid;
+    final now = DateTime.now();
+
+    // Define the date range for the current month
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+    final snapshot = await expenseCollection
+        .where('userId', isEqualTo: userId)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+        .get();
+
+    // Use a Map to track total amount per category
+    final Map<String, double> categoryAmountMap = {};
+    final Map<String, String> categoryIdMap = {};
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final categoryId = doc.id;
+      final category = data['category'] as String?;
+      final amount = data['amount'] as num?; // Ensure it's a number
+
+      if (category != null && category.trim().isNotEmpty && amount != null) {
+        final trimmedCategory = category.trim();
+
+        // Sum the amount by category
+        categoryAmountMap[trimmedCategory] =
+            (categoryAmountMap[trimmedCategory] ?? 0) + amount.toDouble();
+
+        // Store categoryId once (or latest, depending on data structure)
+        categoryIdMap[trimmedCategory] = categoryId;
+      }
+    }
+
+    // Convert the map to a list of maps with string values
+    final List<Map<String, String>> categories = categoryAmountMap.entries.map((entry) {
+      final category = entry.key;
+      final totalAmount = entry.value.toStringAsFixed(2); // format to 2 decimal places
+      final categoryId = categoryIdMap[category] ?? '';
+      return {
+        'category': category,
+        'categoryId': categoryId,
+        'amount': totalAmount,
+      };
+    }).toList();
+
+    return categories;
+  } catch (e) {
+    print('Error fetching categories: $e');
+    return [];
   }
+}
+
 
   //fetch current month expense for current logged in user  category and amount,
   Future<void> fetchCurrentMonthExpenses() async {
@@ -306,10 +327,11 @@ class ExpenseController extends GetxController {
       }
 for (var item in result) {
   double remaining = item['remaining'] ?? 0.0;
-  String categoryId = item['expenseId'] ?? '';  // Use expenseId as categoryId
+  String categoryId = item['expenseId'] ?? '';
+   String category = item['category'] ?? '';  // Use expenseId as categoryId
 
   if (remaining > 0 && categoryId.isNotEmpty) {
-    await addSaving(categoryId: categoryId, amount: remaining);
+    await addSaving(categoryId: categoryId,category:category, amount: remaining);
   }
 }
       return result;
@@ -333,7 +355,7 @@ for (var item in result) {
   }
 }
 Future<void> addSaving({
-  required String categoryId,
+  required String categoryId, required String category,
 
   required double amount,
 }) async {
@@ -365,7 +387,7 @@ Future<void> addSaving({
     await savingCollection.add({
       'userId': user.uid,
       'categoryId': categoryId,
-      'categoryName': categoryId, // optional, just for display
+      'categoryName': category, // optional, just for display
       'amount': amount,
       'date': Timestamp.now(),
     });

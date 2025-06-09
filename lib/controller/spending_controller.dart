@@ -91,13 +91,14 @@ class SpendingController extends GetxController {
       }
 
       final double remainingAmount = maxCategoryAmount - totalSpentInCategory;
+      print("Remaining amount for category: $subAmount");
 
-      if (subAmount > remainingAmount) {
-        Get.snackbar("Error",
-            "Insufficient budget. Remaining for this category: ${remainingAmount.toStringAsFixed(2)}",
-            colorText: TColor.secondary);
-        return false;
-      }
+      // if (subAmount > remainingAmount) {
+      //   Get.snackbar("Error",
+      //       "Insufficient budget. Remaining for this category: ${remainingAmount.toStringAsFixed(2)}",
+      //       colorText: TColor.secondary);
+      //   return false;
+      // }
 
       // Add new spending record
       final doc = spendingCollection.doc();
