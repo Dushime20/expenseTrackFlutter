@@ -60,7 +60,7 @@ class AddCategoryButton extends StatelessWidget {
                         Icons.add,
                         color: theme.primaryColor,
                         size: 24,
-                      ),
+                      )
                     ),
                     const SizedBox(width: 12),
                     Text(

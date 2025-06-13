@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:untitled/controller/theme_controller.dart';
 import 'package:untitled/report/expense_report.dart';
 import 'package:untitled/report/income_report.dart';
+import 'package:untitled/report/saving_report.dart';
 import 'package:untitled/service/AuthenticationService.dart';
 import 'package:untitled/view/login/edit_profile.dart';
 import 'package:untitled/view/login/sign_in_view.dart';
@@ -243,6 +244,18 @@ class _SettingsViewState extends State<SettingsView> {
                           onTap: () async {
                             final generator = BudgetPdfGenerator();
                             await generator.generateAndSaveBudgetReport();
+                          },
+                        ),
+
+                         enhancedIconItemRow(
+                          theme: theme,
+                          title: "Saving report",
+                          subtitle: "Track your saving  performance",
+                          icon: Icons.savings,
+                          color: Colors.blue,
+                          onTap: () async {
+                            final generator = SavingPdfGenerator();
+                            await generator.generateAndSaveSavingReport();
                           },
                         ),
                       ],

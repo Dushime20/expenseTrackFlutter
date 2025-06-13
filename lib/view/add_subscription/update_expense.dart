@@ -63,7 +63,11 @@ class _UpdateExpenseState extends State<UpdateExpenseView> {
       return;
     }
 
-    final success = await spendingCtrl.updateSpending(widget.id ?? '');
+    final success = await spendingCtrl.updateSpending(
+      widget.id ?? '',
+      spendingCtrl.subNameCtrl.text.trim(),
+      double.tryParse(spendingCtrl.subAmountCtrl.text.trim()) ?? 0.0,
+    );
     if (success) {
       Get.back(); // go back after update
 

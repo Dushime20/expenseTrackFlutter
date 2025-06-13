@@ -40,95 +40,100 @@ class SpendingController extends GetxController {
 
 
 
-  Future<bool> addSpending() async {
-    try {
-      final String? userId = auth.currentUser?.uid;
-      if (userId == null) {
-        Get.snackbar("Error", "User not logged in.", colorText: TColor.secondary);
-        return false;
-      }
-
-      final double subAmount = double.tryParse(subAmountCtrl.text.trim()) ?? 0.0;
-      final String subName = subNameCtrl.text.trim();
-      if (subAmount <= 0 || subName.isEmpty || selectedExpenseId == null || selectedExpenseId!.isEmpty) {
-        Get.snackbar("Error", "Please provide valid spending details.",
-            colorText: TColor.secondary);
-        return false;
-      }
-
-      if (selectedExpenseId == null || selectedExpenseId!.isEmpty) {
-        Get.snackbar("Error", "Invalid or missing expense category ID.",
-            colorText: TColor.secondary);
-        return false;
-      }
-
-
-      // Fetch the parent expense category document
-      final expenseDoc = await expenseCollection.doc(selectedExpenseId).get();
-      if (!expenseDoc.exists || expenseDoc.data() == null) {
-        Get.snackbar("Error", "Expense category not found.",
-            colorText: TColor.secondary);
-        return false;
-      }
-
-      final Map<String, dynamic> expenseData = expenseDoc.data()! as Map<String, dynamic>;
-      final double maxCategoryAmount = double.tryParse(expenseData['amount'].toString()) ?? 0.0;
-
-      // Fetch existing spendings under this expense category
-      final spendingSnapshot = await spendingCollection
-          .where('userId', isEqualTo: userId)
-          .where('expenseId', isEqualTo: selectedExpenseId)
-          .get();
-
-      double totalSpentInCategory = 0.0;
-      for (var doc in spendingSnapshot.docs) {
-        final data = doc.data();
-        if (data != null) {
-          final spend = data as Map<String, dynamic>;
-          final amt = double.tryParse(spend['amount'].toString()) ?? 0.0;
-          totalSpentInCategory += amt;
-        }
-      }
-
-      final double remainingAmount = maxCategoryAmount - totalSpentInCategory;
-      print("Remaining amount for category: $subAmount");
-
-      // if (subAmount > remainingAmount) {
-      //   Get.snackbar("Error",
-      //       "Insufficient budget. Remaining for this category: ${remainingAmount.toStringAsFixed(2)}",
-      //       colorText: TColor.secondary);
-      //   return false;
-      // }
-
-      // Add new spending record
-      final doc = spendingCollection.doc();
-      final spending = {
-        'id': doc.id,
-        'name': subName,
-        'amount': subAmount,
-        'date': Timestamp.fromDate(DateTime.now()),
-        'userId': userId,
-        'expenseId': selectedExpenseId,
-      };
-
-      await doc.set(spending);
-
-
-      await fetchUserSpendings();
-      await fetchSpendingStats();
-      expenseController.loadExpenseStatus();
-      Get.snackbar("Success", "Spending added successfully",
-          colorText: TColor.line);
-      return true;
-    } catch (e) {
-      Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
-      print("Spending Error: $e");
+ Future<bool> addSpending({bool useFromSavings = false}) async {
+  try {
+    final String? userId = auth.currentUser?.uid;
+    if (userId == null) {
+      Get.snackbar("Error", "User not logged in.", colorText: TColor.secondary);
       return false;
     }
+
+    final double subAmount = double.tryParse(subAmountCtrl.text.trim()) ?? 0.0;
+    final String subName = subNameCtrl.text.trim();
+    if (subAmount <= 0 || subName.isEmpty || selectedExpenseId == null || selectedExpenseId!.isEmpty) {
+      Get.snackbar("Error", "Please provide valid spending details.",
+          colorText: TColor.secondary);
+      return false;
+    }
+
+    if (selectedExpenseId == null || selectedExpenseId!.isEmpty) {
+      Get.snackbar("Error", "Invalid or missing expense category ID.",
+          colorText: TColor.secondary);
+      return false;
+    }
+
+    // Fetch the parent expense category document
+    final expenseDoc = await expenseCollection.doc(selectedExpenseId).get();
+    if (!expenseDoc.exists || expenseDoc.data() == null) {
+      Get.snackbar("Error", "Expense category not found.",
+          colorText: TColor.secondary);
+      return false;
+    }
+
+    final Map<String, dynamic> expenseData = expenseDoc.data()! as Map<String, dynamic>;
+    final double maxCategoryAmount = double.tryParse(expenseData['amount'].toString()) ?? 0.0;
+
+    // Fetch existing spendings under this expense category
+    final spendingSnapshot = await spendingCollection
+        .where('userId', isEqualTo: userId)
+        .where('expenseId', isEqualTo: selectedExpenseId)
+        .get();
+
+    double totalSpentInCategory = 0.0;
+    for (var doc in spendingSnapshot.docs) {
+      final data = doc.data();
+      if (data != null) {
+        final spend = data as Map<String, dynamic>;
+        final amt = double.tryParse(spend['amount'].toString()) ?? 0.0;
+        totalSpentInCategory += amt;
+      }
+    }
+
+    final double remainingAmount = maxCategoryAmount - totalSpentInCategory;
+    print("Remaining amount for category: $remainingAmount");
+
+    // Only check budget constraints if NOT using savings
+    if (!useFromSavings && subAmount > remainingAmount) {
+      Get.snackbar("Error",
+          "Insufficient budget. Remaining for this category: ${remainingAmount.toStringAsFixed(2)}",
+          colorText: TColor.secondary);
+      return false;
+    }
+
+    // Add new spending record
+    final doc = spendingCollection.doc();
+    final spending = {
+      'id': doc.id,
+      'name': subName,
+      'amount': subAmount,
+      'date': Timestamp.fromDate(DateTime.now()),
+      'userId': userId,
+      'expenseId': selectedExpenseId,
+      'useFromSavings': useFromSavings, // Optional: track if this spending used savings
+    };
+
+    await doc.set(spending);
+
+    await fetchUserSpendings();
+    await fetchSpendingStats();
+    expenseController.loadExpenseStatus();
+    
+    String successMessage = "Spending added successfully";
+    if (useFromSavings && subAmount > remainingAmount) {
+      successMessage = "Spending added successfully using savings (exceeded budget by ${(subAmount - remainingAmount).toStringAsFixed(2)})";
+    }
+    
+    Get.snackbar("Success", successMessage, colorText: TColor.line);
+    return true;
+  } catch (e) {
+    Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
+    print("Spending Error: $e");
+    return false;
   }
+}
 
   //update spending
-  Future<bool> updateSpending(String spendingId) async {
+  Future<bool> updateSpending(String spendingId,subAmount,subName) async {
     try {
       final String? userId = auth.currentUser?.uid;
       if (userId == null) {
@@ -203,6 +208,85 @@ class SpendingController extends GetxController {
     }
   }
 
+
+Future<bool> updateSpending2(String spendingId, subAmount, subName, selectedExpenseId) async {
+  print("spendingId: $spendingId");
+  try {
+    if (spendingId.isEmpty) {
+      Get.snackbar("Error", "Invalid spending ID", colorText: TColor.secondary);
+      return false;
+    }
+
+    final String? userId = auth.currentUser?.uid;
+    if (userId == null) {
+      Get.snackbar("Error", "User not logged in.", colorText: TColor.secondary);
+      return false;
+    }
+
+    print("selelectedExpenseId: $selectedExpenseId");
+
+    final double subAmountParsed = double.tryParse(subAmount.toString()) ?? 0.0;
+    final String subNameParsed = subName.toString();
+
+    if (subAmountParsed <= 0 || subNameParsed.isEmpty || selectedExpenseId == null || selectedExpenseId.isEmpty) {
+      Get.snackbar("Error", "Please provide valid spending details.",
+          colorText: TColor.secondary);
+      return false;
+    }
+
+    final expenseDoc = await expenseCollection.doc(selectedExpenseId).get();
+    if (!expenseDoc.exists || expenseDoc.data() == null) {
+      Get.snackbar("Error", "Expense category not found.",
+          colorText: TColor.secondary);
+      return false;
+    }
+
+    final Map<String, dynamic> expenseData = expenseDoc.data()! as Map<String, dynamic>;
+    final double maxCategoryAmount = double.tryParse(expenseData['amount'].toString()) ?? 0.0;
+
+    final spendingSnapshot = await spendingCollection
+        .where('userId', isEqualTo: userId)
+        .where('expenseId', isEqualTo: selectedExpenseId)
+        .get();
+
+    double totalSpentInCategory = 0.0;
+    for (var doc in spendingSnapshot.docs) {
+      final data = doc.data();
+      if (data != null && doc.id != spendingId) {
+        final spend = data as Map<String, dynamic>;
+        final amt = double.tryParse(spend['amount'].toString()) ?? 0.0;
+        totalSpentInCategory += amt;
+      }
+    }
+
+    final double remainingAmount = maxCategoryAmount - totalSpentInCategory;
+    if (subAmountParsed > remainingAmount) {
+      Get.snackbar("Error",
+          "Insufficient budget. Remaining: ${remainingAmount.toStringAsFixed(2)}",
+          colorText: TColor.secondary);
+      return false;
+    }
+
+    final updateData = {
+      'name': subNameParsed,
+      'amount': subAmountParsed,
+      'date': Timestamp.fromDate(DateTime.now()),
+      'expenseId': selectedExpenseId,
+    };
+
+    await spendingCollection.doc(spendingId).update(updateData);
+
+    Get.snackbar("Success", "Spending updated successfully",
+        colorText: TColor.line);
+    await fetchUserSpendings();
+    await fetchSpendingStats();
+    return true;
+  } catch (e) {
+    Get.snackbar("Error", e.toString(), colorText: TColor.secondary);
+    print("Update Spending Error: $e");
+    return false;
+  }
+}
 
   //fetch the spending for current loggedin user
 

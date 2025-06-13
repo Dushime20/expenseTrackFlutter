@@ -3,14 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/material.dart';
+import 'package:untitled/controller/expense_controller.dart';
 import '../controller/budgetController.dart';
 
 class BudgetPdfGenerator {
   final BudgetController budgetCtrl = Get.find();
+    final ExpenseController expenseCtrl = Get.find(); 
 
   void _log(String title, String message, {bool isError = false}) {
     print("${isError ? 'ERROR' : 'INFO'} - $title: $message");
@@ -26,13 +27,12 @@ class BudgetPdfGenerator {
   Future<void> generateAndSaveBudgetReport() async {
     try {
       print("Starting PDF generation...");
-      await budgetCtrl.fetchBudget();
+      final budgetStatusList = await budgetCtrl.fetchExpenseStatusForCurrentMonth();
 
-      final pdf = await _createPdfDocument();
+      final pdf = await _createPdfDocument(budgetStatusList);
       final bytes = await pdf.save();
 
       if (Platform.isAndroid) {
-        // Request permissions based on Android version
         if (await _requestStoragePermission()) {
           bool saved = await _saveToDownloads(bytes);
           if (!saved) throw Exception("Failed to save PDF to Downloads");
@@ -47,12 +47,15 @@ class BudgetPdfGenerator {
     }
   }
 
-  Future<pw.Document> _createPdfDocument() async {
+  Future<pw.Document> _createPdfDocument(List<Map<String, dynamic>> budgets) async {
     final fontData = await rootBundle.load("assets/font/Roboto-Regular.ttf");
     final ttf = pw.Font.ttf(fontData.buffer.asByteData());
 
     final pdf = pw.Document();
     final formatter = DateFormat('yyyy-MM-dd');
+
+    final startDate = budgets.isNotEmpty ? budgets.first['startDate'] : null;
+    final endDate = budgets.isNotEmpty ? budgets.first['endDate'] : null;
 
     pdf.addPage(
       pw.MultiPage(
@@ -61,24 +64,62 @@ class BudgetPdfGenerator {
             level: 0,
             child: pw.Text("User Monthly Budget Report", style: pw.TextStyle(font: ttf, fontSize: 24)),
           ),
+          if (startDate != null && endDate != null)
+            pw.Paragraph(
+              text: "Period: ${formatter.format(startDate)} to ${formatter.format(endDate)}",
+              style: pw.TextStyle(font: ttf, fontSize: 14),
+            ),
+          pw.SizedBox(height: 10),
           pw.Table.fromTextArray(
-            headers: [ 'Amount', 'Start Date', 'End Date'],
-            data: budgetCtrl.budgetList.map((budget) {
-              return [
+            headers: ['Budget', 'Used', 'Remaining', 'Advice'],
+            data: budgets.map((budget) {
+              final budgetAmount = (budget['budget'] ?? 0.0).toDouble();
+              final used = (budget['used'] ?? 0.0).toDouble();
+              final remaining = (budget['remaining'] ?? 0.0).toDouble();
+              final spendings = (budget['spendings'] ?? []) as List<Map<String, dynamic>>;
+              final advice = _getAdvice(used, budgetAmount, spendings);
 
-                '${budget['amount']} RWF',
-                formatter.format((budget['startDate'] as Timestamp).toDate()),
-                formatter.format((budget['endDate'] as Timestamp).toDate()),
+              return [
+                "${budgetAmount.toStringAsFixed(2)} RWF",
+                "${used.toStringAsFixed(2)} RWF",
+                "${remaining.toStringAsFixed(2)} RWF",
+                advice,
               ];
             }).toList(),
-            headerStyle: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold),
             cellStyle: pw.TextStyle(font: ttf),
+            headerStyle: pw.TextStyle(font: ttf, fontWeight: pw.FontWeight.bold),
+            columnWidths: {
+              3: const pw.FlexColumnWidth(4),
+            },
           ),
         ],
       ),
     );
 
     return pdf;
+  }
+
+String _getAdvice(double used, double budget, List<Map<String, dynamic>> spendings) {
+  if (budget == 0) return "No budget data";
+
+  double percent = (used / budget) * 100;
+
+  if (percent <= 70) {
+    return "Safe Zone: Excellent! You are managing well. Consider saving or investing.";
+  } else if (percent <= 95) {
+    String biggest = expenseCtrl.getHighestSpendingCategory();
+    return "Warning Zone: Close to the limit. Watch spending on $biggest.";
+  } else {
+    String biggest = expenseCtrl.getHighestSpendingCategory();
+    return "Critical Zone: Overspending! Consider reducing $biggest or adjust your budget.";
+  }
+}
+
+
+  String _getTopSpendingCategory(List<Map<String, dynamic>> spendings) {
+    if (spendings.isEmpty) return "your categories";
+    spendings.sort((a, b) => (b['amount'] as double).compareTo(a['amount'] as double));
+    return spendings.first['categoryName'] ?? "unknown category";
   }
 
   Future<bool> _saveToDownloads(List<int> bytes) async {
@@ -104,22 +145,12 @@ class BudgetPdfGenerator {
   }
 
   Future<bool> _requestStoragePermission() async {
-    // Check if permissions are granted or need requesting
-    if (await Permission.manageExternalStorage.isGranted) {
-      return true;
-    }
+    if (await Permission.manageExternalStorage.isGranted) return true;
+    if (await Permission.storage.isGranted) return true;
 
-    // For Android 10+ (API 29) and below
-    if (await Permission.storage.isGranted) {
-      return true;
-    }
+    if (await Permission.manageExternalStorage.request().isGranted) return true;
+    if (await Permission.storage.request().isGranted) return true;
 
-    // For Android 11+ (API 30), request the special permission
-    if (await Permission.manageExternalStorage.request().isGranted) {
-      return true;
-    }
-
-    // If permission is not granted, show an error
     _log("Permission Denied", "Storage permission is required to save the PDF.", isError: true);
     return false;
   }

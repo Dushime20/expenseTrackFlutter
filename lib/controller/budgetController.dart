@@ -319,4 +319,66 @@ class BudgetController extends GetxController {
     }
   }
 
+ Future<List<Map<String, dynamic>>> fetchExpenseStatusForCurrentMonth() async {
+  final user = auth.currentUser;
+  if (user == null) {
+    print("User not logged in");
+    return [];
+  }
+
+  final userId = user.uid;
+  final now = DateTime.now();
+  final startOfMonth = DateTime(now.year, now.month, 1);
+  final endOfMonth = DateTime(now.year, now.month + 1, 1);
+
+  // Fetch all budgets for the current month
+  final budgetSnapshot = await budgetCollection
+      .where('userId', isEqualTo: userId)
+      .where('startDate', isGreaterThanOrEqualTo: startOfMonth)
+      .where('startDate', isLessThan: endOfMonth)
+      .get();
+
+  List<Map<String, dynamic>> result = [];
+
+  for (var doc in budgetSnapshot.docs) {
+    final budgetData = doc.data() as Map<String, dynamic>;
+    final amount = (budgetData['amount'] ?? 0.0).toDouble();
+    final startDate = (budgetData['startDate'] as Timestamp).toDate();
+    final endDate = (budgetData['endDate'] as Timestamp).toDate();
+
+    // Fetch ALL expenses in the month
+    final expenseSnapshot = await expenseCollection
+        .where('userId', isEqualTo: userId)
+        .where('date', isGreaterThanOrEqualTo: startOfMonth)
+        .where('date', isLessThan: endOfMonth)
+        .get();
+
+    double used = 0.0;
+    List<Map<String, dynamic>> spendings = [];
+
+    for (var expenseDoc in expenseSnapshot.docs) {
+      final expenseData = expenseDoc.data() as Map<String, dynamic>;
+      final amt = (expenseData['amount'] ?? 0.0).toDouble();
+      used += amt;
+      spendings.add({
+        'name': expenseData['description'] ?? 'Unknown',
+        'amount': amt,
+      });
+    }
+
+    result.add({
+      'budget': amount,
+      'used': used,
+      'remaining': amount - used,
+      'spendings': spendings,
+      'startDate': startDate,
+      'endDate': endDate,
+    });
+  }
+
+  return result;
+}
+
+
+
 }

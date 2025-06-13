@@ -1,4 +1,3 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -9,8 +8,14 @@ import 'package:untitled/controller/expense_controller.dart';
 import 'package:untitled/controller/home_controller.dart';
 import 'package:untitled/controller/saving_contoller.dart';
 import 'package:untitled/controller/spending_controller.dart';
-import 'package:untitled/model/Saving/saving.dart';
 import 'package:untitled/view/spending_budgets/spending_budgets_view.dart';
+
+// Import components
+import 'components/spending_header.dart';
+import 'components/expense_category_dropdown.dart';
+import 'components/savings_toggle.dart';
+import 'components/savings_category_dropdown.dart';
+import 'components/amount_input_section.dart';
 
 class AddSpendingView extends StatefulWidget {
   const AddSpendingView({super.key});
@@ -27,7 +32,7 @@ class _AddSpendingViewState extends State<AddSpendingView> {
   double amountVal = 0.0;
   String? selectedCategoryName;
   String? selectedCategoryId;
-  double selectedCategoryBudget = 0.0; // Track category budget for validation
+  double selectedCategoryBudget = 0.0;
 
   // New variables for savings functionality
   bool useFromSavings = false;
@@ -37,7 +42,7 @@ class _AddSpendingViewState extends State<AddSpendingView> {
   final TextEditingController savingAmountCtrl = TextEditingController();
   final TextEditingController regularAmountCtrl = TextEditingController();
 
-  List subArr = [
+  final List<Map<String, String>> subArr = [
     {"name": "Salary", "icon": "assets/img/money.jpg"},
     {"name": "House rent", "icon": "assets/img/house.jpeg"},
     {"name": "Clothes", "icon": "assets/img/clothes.jpg"},
@@ -52,7 +57,6 @@ class _AddSpendingViewState extends State<AddSpendingView> {
   void initState() {
     super.initState();
     loadSavingsData();
-    // Add listeners to automatically calculate total amount
     savingAmountCtrl.addListener(calculateTotalAmount);
     regularAmountCtrl.addListener(calculateTotalAmount);
   }
@@ -71,29 +75,53 @@ class _AddSpendingViewState extends State<AddSpendingView> {
   }
 
   void calculateTotalAmount() {
+    print("=== calculateTotalAmount called ===");
+    print("savingAmountCtrl.text=======: '${savingAmountCtrl.text}'");
+    print("regularAmountCtrl.text=====: '${regularAmountCtrl.text}'");
+
     double savingAmount = double.tryParse(savingAmountCtrl.text) ?? 0.0;
     double regularAmount = double.tryParse(regularAmountCtrl.text) ?? 0.0;
     double totalAmount = savingAmount + regularAmount;
 
-    // Update the main spending amount controller
+    print(
+        "Parsed values - Saving: $savingAmount, Regular: $regularAmount, Total: $totalAmount");
+    print("useFromSavings: $useFromSavings");
+
     setState(() {
-      spendingCtrl.subAmountCtrl.text =
-          totalAmount > 0 ? totalAmount.toStringAsFixed(0) : '';
+      if (useFromSavings) {
+        spendingCtrl.subAmountCtrl.text =
+            totalAmount > 0 ? totalAmount.toStringAsFixed(0) : '';
+      }
+      // If not using savings, don't auto-calculate
     });
+
+    print(
+        "Final spendingCtrl.subAmountCtrl.text: '${spendingCtrl.subAmountCtrl.text}'");
   }
 
   void onSavingCategoryChanged(String? categoryId) {
+    print("Saving category changed to: $categoryId");
+
     setState(() {
       selectedSavingCategoryId = categoryId;
       savingAmountCtrl.clear();
-      if (categoryId != null) {
-        final selectedSaving = savingCtrl.saving.firstWhere(
-          (saving) => saving.id == categoryId,
-          orElse: () => null as dynamic,
+      regularAmountCtrl.clear(); // Clear this too when changing categories
+
+      if (categoryId != null && categoryId.isNotEmpty) {
+        // FIX: Use categoryId instead of id for comparison
+        final selectedSaving = savingCtrl.saving.firstWhereOrNull(
+          (saving) => saving.categoryId == categoryId,
         );
+
+        print(
+            "Found saving: ${selectedSaving?.categoryName}, Amount: ${selectedSaving?.amount}");
+
         if (selectedSaving != null) {
           selectedSavingCategoryName = selectedSaving.categoryName;
-          availableSavingAmount = selectedSaving.amount;
+          availableSavingAmount = selectedSaving.amount ?? 0.0;
+        } else {
+          selectedSavingCategoryName = null;
+          availableSavingAmount = 0.0;
         }
       } else {
         selectedSavingCategoryName = null;
@@ -110,24 +138,16 @@ class _AddSpendingViewState extends State<AddSpendingView> {
 
       if (categoryId != null) {
         final categories = expenseCtrl.currentMonthCategories;
-        print("Selected category ID: $categoryId");
-        print("Available categories: $categories");
 
-        // Find the matching category
         for (var category in categories) {
           if (category['categoryId'] == categoryId) {
-            // Get the amount value
             var amountValue = category['amount'];
-
-            // Convert to double regardless of the original type
             if (amountValue != null) {
               selectedCategoryBudget =
                   double.tryParse(amountValue.toString()) ?? 0.0;
             } else {
               selectedCategoryBudget = 0.0;
             }
-
-            print("Found category with amount: $selectedCategoryBudget");
             break;
           }
         }
@@ -137,17 +157,29 @@ class _AddSpendingViewState extends State<AddSpendingView> {
     });
   }
 
+  void onSavingsToggleChanged(bool? value) {
+    setState(() {
+      useFromSavings = value ?? false;
+      if (!useFromSavings) {
+        selectedSavingCategoryId = null;
+        selectedSavingCategoryName = null;
+        availableSavingAmount = 0.0;
+        savingAmountCtrl.clear();
+        regularAmountCtrl.clear();
+        spendingCtrl.subAmountCtrl.clear();
+      }
+    });
+  }
+
   bool validateSpendingAmount() {
     double spendingAmount =
         double.tryParse(spendingCtrl.subAmountCtrl.text) ?? 0.0;
     double regularAmount = double.tryParse(regularAmountCtrl.text) ?? 0.0;
-    double savingAmount = double.tryParse(savingAmountCtrl.text) ?? 0.0;
 
     if (spendingAmount <= 0) {
       return false;
     }
 
-    // If not using savings, check if regular amount exceeds category budget
     if (!useFromSavings) {
       if (spendingAmount > selectedCategoryBudget) {
         Get.snackbar(
@@ -162,7 +194,6 @@ class _AddSpendingViewState extends State<AddSpendingView> {
       return true;
     }
 
-    // If using savings, validate the breakdown
     if (regularAmount > selectedCategoryBudget) {
       Get.snackbar(
         "Error",
@@ -176,7 +207,79 @@ class _AddSpendingViewState extends State<AddSpendingView> {
     return true;
   }
 
+  // Enhanced validation method to ensure saving amount > 0
+  bool validateSavingAmount() {
+    // If not using savings, skip this validation
+    if (!useFromSavings) {
+      return true;
+    }
+
+    // Check if saving category is selected
+    if (selectedSavingCategoryId == null || selectedSavingCategoryId!.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Please select a saving category",
+        colorText: Theme.of(context).colorScheme.onError,
+        backgroundColor: Theme.of(context).colorScheme.error,
+      );
+      return false;
+    }
+
+    // Get and validate saving amount
+    String savingAmountText = savingAmountCtrl.text.trim();
+
+    // Check if saving amount field is empty
+    if (savingAmountText.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Please enter amount to use from savings",
+        colorText: Theme.of(context).colorScheme.onError,
+        backgroundColor: Theme.of(context).colorScheme.error,
+      );
+      return false;
+    }
+
+    // Parse saving amount
+    double savingAmountToUse = double.tryParse(savingAmountText) ?? 0.0;
+
+    // CRITICAL CHECK: Saving amount must be > 0
+    if (savingAmountToUse <= 0) {
+      Get.snackbar(
+        "Invalid Saving Amount",
+        "Amount from savings must be greater than 0. Current: ${savingAmountToUse.toStringAsFixed(2)} RWF",
+        colorText: Theme.of(context).colorScheme.onError,
+        backgroundColor: Theme.of(context).colorScheme.error,
+        duration: const Duration(seconds: 4),
+      );
+      return false;
+    }
+
+    // Check if saving amount exceeds available savings
+    if (savingAmountToUse > availableSavingAmount) {
+      Get.snackbar(
+        "Insufficient Savings",
+        "Not enough savings available. Available: ${availableSavingAmount.toStringAsFixed(0)} RWF, Requested: ${savingAmountToUse.toStringAsFixed(0)} RWF",
+        colorText: Theme.of(context).colorScheme.onError,
+        backgroundColor: Theme.of(context).colorScheme.error,
+        duration: const Duration(seconds: 4),
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  // Enhanced handleSubmit method with stronger validation
   void handleSubmit() async {
+    print("=== SUBMIT DEBUG ===");
+    print("useFromSavings: $useFromSavings");
+    print("selectedSavingCategoryId: $selectedSavingCategoryId");
+    print("savingAmountCtrl.text: '${savingAmountCtrl.text}'");
+    print("regularAmountCtrl.text: '${regularAmountCtrl.text}'");
+    print(
+        "spendingCtrl.subAmountCtrl.text: '${spendingCtrl.subAmountCtrl.text}'");
+
+    // Basic validations
     if (selectedCategoryId == null || selectedCategoryId!.isEmpty) {
       Get.snackbar(
         "Error",
@@ -198,8 +301,11 @@ class _AddSpendingViewState extends State<AddSpendingView> {
       return;
     }
 
-    // Validate spending amount
     if (!validateSpendingAmount()) {
+      return;
+    }
+
+    if (!validateSavingAmount()) {
       return;
     }
 
@@ -207,94 +313,106 @@ class _AddSpendingViewState extends State<AddSpendingView> {
         double.tryParse(spendingCtrl.subAmountCtrl.text) ?? 0.0;
     double savingAmountToUse = 0.0;
 
-    // Check if using from savings and validate amount
     if (useFromSavings) {
-      if (selectedSavingCategoryId == null) {
-        Get.snackbar(
-          "Error",
-          "Please select a saving category",
-          colorText: Theme.of(context).colorScheme.onError,
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
-        return;
-      }
-
-      if (savingAmountCtrl.text.trim().isEmpty) {
-        Get.snackbar(
-          "Error",
-          "Please enter amount to use from savings",
-          colorText: Theme.of(context).colorScheme.onError,
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
-        return;
-      }
-
-      savingAmountToUse = double.tryParse(savingAmountCtrl.text) ?? 0.0;
+      savingAmountToUse = double.tryParse(savingAmountCtrl.text.trim()) ?? 0.0;
 
       if (savingAmountToUse <= 0) {
         Get.snackbar(
-          "Error",
-          "Please enter a valid amount from savings",
+          "Critical Error",
+          "Invalid saving amount detected. Please refresh and try again.",
           colorText: Theme.of(context).colorScheme.onError,
           backgroundColor: Theme.of(context).colorScheme.error,
         );
         return;
       }
 
-      if (savingAmountToUse > availableSavingAmount) {
+      double regularAmount =
+          double.tryParse(regularAmountCtrl.text.trim()) ?? 0.0;
+
+      if (regularAmountCtrl.text.trim().isNotEmpty && regularAmount <= 0) {
         Get.snackbar(
-          "Error",
-          "Insufficient savings amount. Available: ${availableSavingAmount.toStringAsFixed(0)} RWF",
+          "Invalid Amount",
+          "Regular budget amount must be greater than 0 if specified",
           colorText: Theme.of(context).colorScheme.onError,
           backgroundColor: Theme.of(context).colorScheme.error,
         );
         return;
       }
 
-      // Validate that regular amount + saving amount = total spending amount
-      double regularAmount = double.tryParse(regularAmountCtrl.text) ?? 0.0;
+      // Validate total amount calculation
       double expectedTotal = savingAmountToUse + regularAmount;
       if ((expectedTotal - spendingAmount).abs() > 0.01) {
         Get.snackbar(
-          "Error",
-          "Total amount mismatch. Savings (${savingAmountToUse.toStringAsFixed(0)}) + Regular (${regularAmount.toStringAsFixed(0)}) should equal Total (${spendingAmount.toStringAsFixed(0)})",
+          "Amount Mismatch",
+          "Total amount mismatch. Savings (${savingAmountToUse.toStringAsFixed(0)}) + Regular (${regularAmount.toStringAsFixed(0)}) = ${expectedTotal.toStringAsFixed(0)} should equal Total (${spendingAmount.toStringAsFixed(0)})",
+          colorText: Theme.of(context).colorScheme.onError,
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 4),
+        );
+        return;
+      }
+
+      if (savingAmountToUse <= 0 && regularAmount <= 0) {
+        Get.snackbar(
+          "Invalid Transaction",
+          "Cannot create spending with 0 amount from both savings and regular budget",
           colorText: Theme.of(context).colorScheme.onError,
           backgroundColor: Theme.of(context).colorScheme.error,
         );
         return;
       }
+
+     
     }
 
+    // Set the selected expense ID
     spendingCtrl.selectedExpenseId = selectedCategoryId!;
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Add spending first
-      final addSpending = await spendingCtrl.addSpending();
+      // Only proceed if all validations pass
+      print("🚀 Proceeding with spending addition...");
+
+      final addSpending =
+          await spendingCtrl.addSpending(useFromSavings: useFromSavings);
 
       if (addSpending) {
-        // If using from savings, update the saving amount
+        // If using savings, update the savings amount
         if (useFromSavings &&
             selectedSavingCategoryId != null &&
             savingAmountToUse > 0) {
+          print("💰 Updating savings amount...");
           double newSavingAmount = availableSavingAmount - savingAmountToUse;
+
           final updateSaving = await savingCtrl.updateSavingAmountAfterSpending(
             selectedSavingCategoryId!,
             newSavingAmount,
           );
 
           if (!updateSaving) {
+            print("❌ Savings update failed - aborting transaction");
             Get.snackbar(
-              "Warning",
-              "Spending added but failed to update savings",
+              "Transaction Failed",
+              "Failed to update savings. The spending transaction has been cancelled for data consistency.",
               colorText: Theme.of(context).colorScheme.onError,
-              backgroundColor: Colors.orange,
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 5),
             );
+            setState(() {
+              _isLoading = false;
+            });
+            return;
           }
+
+          print("✅ Savings updated successfully");
         }
 
+        // Success message and navigation
+        print(
+            "✅ Spending added successfully with savings: $savingAmountToUse RWF");
         String successMessage = "Spending added successfully";
         if (useFromSavings && savingAmountToUse > 0) {
           successMessage =
@@ -308,25 +426,19 @@ class _AddSpendingViewState extends State<AddSpendingView> {
           backgroundColor: Theme.of(context).colorScheme.primary,
         );
 
-        Get.to(() => SpendingBudgetsView());
-
-        // Clear all fields
-        setState(() {
-          spendingCtrl.subNameCtrl.clear();
-          spendingCtrl.subAmountCtrl.clear();
-          savingAmountCtrl.clear();
-          regularAmountCtrl.clear();
-          selectedCategoryId = null;
-          selectedCategoryName = null;
-          selectedSavingCategoryId = null;
-          selectedSavingCategoryName = null;
-          availableSavingAmount = 0.0;
-          selectedCategoryBudget = 0.0;
-          useFromSavings = false;
-          selectedCategory = null;
-        });
+        // Navigate and clear fields
+        Get.to(() => const SpendingBudgetsView());
+        _clearAllFields();
+      } else {
+        Get.snackbar(
+          "Error",
+          "Failed to add spending. Please try again.",
+          colorText: Theme.of(context).colorScheme.onError,
+          backgroundColor: Theme.of(context).colorScheme.error,
+        );
       }
     } catch (e) {
+      print("❌ Error in handleSubmit: $e");
       Get.snackbar(
         "Error",
         "Failed to process the transaction: ${e.toString()}",
@@ -340,11 +452,49 @@ class _AddSpendingViewState extends State<AddSpendingView> {
     }
   }
 
+  // Helper method to clear all fields
+  void _clearAllFields() {
+    setState(() {
+      spendingCtrl.subNameCtrl.clear();
+      spendingCtrl.subAmountCtrl.clear();
+      savingAmountCtrl.clear();
+      regularAmountCtrl.clear();
+      selectedCategoryId = null;
+      selectedCategoryName = null;
+      selectedSavingCategoryId = null;
+      selectedSavingCategoryName = null;
+      availableSavingAmount = 0.0;
+      selectedCategoryBudget = 0.0;
+      useFromSavings = false;
+      selectedCategory = null;
+    });
+  }
+
+  // Enhanced input validation for saving amount field
+  void onSavingAmountChanged(String value) {
+    // Real-time validation as user types
+    if (useFromSavings && value.isNotEmpty) {
+      double amount = double.tryParse(value) ?? 0.0;
+      if (amount <= 0) {
+        print("⚠️ Warning: User entered saving amount <= 0: $amount");
+        // You could show a subtle warning here without blocking input
+      }
+    }
+  }
+
+  List<String> get alreadySelectedCategories {
+    List<String> excluded = [];
+
+    // Exclude the selected expense category from savings dropdown
+    if (selectedCategoryId != null && selectedCategoryId!.isNotEmpty) {
+      excluded.add(selectedCategoryId!);
+    }
+    print("Excluded categories: $excluded");
+    return excluded;
+  }
+
   @override
   Widget build(BuildContext context) {
-    print("=== Build method called ===");
-    print("Selected category: $selectedCategory");
-    print("Selected category budget: $selectedCategoryBudget");
     final media = MediaQuery.sizeOf(context);
     final theme = Theme.of(context);
 
@@ -354,281 +504,30 @@ class _AddSpendingViewState extends State<AddSpendingView> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(25),
-                    bottomRight: Radius.circular(25),
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        child: Row(
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              icon: Image.asset(
-                                "assets/img/back.png",
-                                width: 25,
-                                height: 25,
-                                color: theme.disabledColor,
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            Text(
-                              "Add new spending",
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: TColor.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: media.width,
-                        height: media.width * 0.5,
-                        child: CarouselSlider.builder(
-                          options: CarouselOptions(
-                            autoPlay: false,
-                            aspectRatio: 1,
-                            enlargeCenterPage: true,
-                            enableInfiniteScroll: true,
-                            viewportFraction: 0.65,
-                            enlargeFactor: 0.4,
-                            enlargeStrategy: CenterPageEnlargeStrategy.zoom,
-                          ),
-                          itemCount: subArr.length,
-                          itemBuilder: (context, index, _) {
-                            var sObj = subArr[index];
-                            return Container(
-                              margin: const EdgeInsets.all(10),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Image.asset(
-                                      sObj["icon"],
-                                      width: media.width * 0.4,
-                                      height: media.width * 0.4,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    sObj["name"],
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: theme.disabledColor,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              SpendingHeader(
+                carouselItems: subArr,
+                screenWidth: media.width,
               ),
-
-              // Expense Category Dropdown
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: Obx(() {
-                  final List<Map<String, String>> categories =
-                      expenseCtrl.currentMonthCategories;
-
-                  if (categories.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        "No categories available, please add expense first",
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  }
-
-                  return Column(
-                    children: [
-                      DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: "Select expense category",
-                          labelStyle: TextStyle(color: theme.disabledColor),
-                          filled: true,
-                          fillColor: theme.cardColor,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: BorderSide(color: theme.dividerColor),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: BorderSide(color: theme.dividerColor),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: BorderSide(
-                              color: theme.colorScheme.primary,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        value: selectedCategory,
-                        items: categories.map((categoryMap) {
-                          return DropdownMenuItem<String>(
-                            value: categoryMap['categoryId'],
-                            child: Text(categoryMap['category'] ?? ''),
-                          );
-                        }).toList(),
-                        onChanged: onExpenseCategoryChanged,
-                      ),
-                      if (selectedCategoryBudget > 0) ...[
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            "Category Budget: ${selectedCategoryBudget.toStringAsFixed(0)} RWF",
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.secondary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  );
-                }),
+              ExpenseCategoryDropdown(
+                selectedCategory: selectedCategory,
+                selectedCategoryBudget: selectedCategoryBudget,
+                onChanged: onExpenseCategoryChanged,
+                expenseCtrl: expenseCtrl,
               ),
-
-              // Use from Savings Toggle
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Checkbox(
-                      value: useFromSavings,
-                      onChanged: (value) {
-                        setState(() {
-                          useFromSavings = value ?? false;
-                          if (!useFromSavings) {
-                            selectedSavingCategoryId = null;
-                            selectedSavingCategoryName = null;
-                            availableSavingAmount = 0.0;
-                            savingAmountCtrl.clear();
-                            regularAmountCtrl.clear();
-                            spendingCtrl.subAmountCtrl.clear();
-                          }
-                        });
-                      },
-                    ),
-                    Expanded(
-                      child: Text(
-                        "Use money from savings (allows spending more than category budget)",
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ),
-                  ],
-                ),
+              SavingsToggle(
+                useFromSavings: useFromSavings,
+                onChanged: onSavingsToggleChanged,
               ),
-
-              // Savings Category Dropdown (only show if useFromSavings is true)
               if (useFromSavings)
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Obx(() {
-                    final List<SavingModel> savings = savingCtrl.saving;
-
-                    if (savings.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          "No savings available",
-                          textAlign: TextAlign.center,
-                        ),
-                      );
-                    }
-
-                    return Column(
-                      children: [
-                        DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                            labelText: "Select saving category",
-                            labelStyle: TextStyle(color: theme.disabledColor),
-                            filled: true,
-                            fillColor: theme.cardColor,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5),
-                              borderSide: BorderSide(color: theme.dividerColor),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5),
-                              borderSide: BorderSide(color: theme.dividerColor),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5),
-                              borderSide: BorderSide(
-                                color: theme.colorScheme.primary,
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                          value: selectedSavingCategoryId,
-                          items: savings.map((saving) {
-                            return DropdownMenuItem<String>(
-                              value: saving.id,
-                              child: Text(
-                                "${saving.categoryName} - ${saving.amount.toStringAsFixed(0)} RWF",
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: onSavingCategoryChanged,
-                        ),
-                        if (selectedSavingCategoryId != null) ...[
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              "Available amount: ${availableSavingAmount.toStringAsFixed(0)} RWF",
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          RoundedTextField(
-                            title: "Amount from regular budget (RWF)",
-                            titleAlign: TextAlign.center,
-                            controller: regularAmountCtrl,
-                            keyboardType: TextInputType.number,
-                          ),
-                          const SizedBox(height: 10),
-                          RoundedTextField(
-                            title: "Amount to use from savings (RWF)",
-                            titleAlign: TextAlign.center,
-                            controller: savingAmountCtrl,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ],
-                      ],
-                    );
-                  }),
+                SavingsCategoryDropdown(
+                  selectedSavingCategoryId: selectedSavingCategoryId,
+                  availableSavingAmount: availableSavingAmount,
+                  regularAmountCtrl: regularAmountCtrl,
+                  savingAmountCtrl: savingAmountCtrl,
+                  onSavingCategoryChanged: onSavingCategoryChanged,
+                  savingCtrl: savingCtrl,
+                  excludedCategoryIds: alreadySelectedCategories,
                 ),
-
               Padding(
                 padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
                 child: RoundedTextField(
@@ -637,65 +536,12 @@ class _AddSpendingViewState extends State<AddSpendingView> {
                   controller: spendingCtrl.subNameCtrl,
                 ),
               ),
-
-              // Total Amount Field - Auto-calculated when using savings
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-                child: Column(
-                  children: [
-                    if (useFromSavings) ...[
-                      // Show auto-calculated total with breakdown
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: theme.cardColor,
-                          borderRadius: BorderRadius.circular(5),
-                          border: Border.all(color: theme.dividerColor),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Total Amount (Auto-calculated)",
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.disabledColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "${spendingCtrl.subAmountCtrl.text} RWF",
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (spendingCtrl.subAmountCtrl.text.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                "Regular: ${regularAmountCtrl.text} RWF + Savings: ${savingAmountCtrl.text} RWF",
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.disabledColor,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ] else ...[
-                      // Regular amount input when not using savings
-                      RoundedTextField(
-                        title: "Total Amount (RWF)",
-                        titleAlign: TextAlign.center,
-                        controller: spendingCtrl.subAmountCtrl,
-                        keyboardType: TextInputType.number,
-                      ),
-                    ],
-                  ],
-                ),
+              AmountInputSection(
+                useFromSavings: useFromSavings,
+                spendingCtrl: spendingCtrl,
+                regularAmountCtrl: regularAmountCtrl,
+                savingAmountCtrl: savingAmountCtrl,
               ),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: PrimaryButton(
