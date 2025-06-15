@@ -22,104 +22,133 @@ class BudgetsRow extends StatefulWidget {
 class _BudgetsRowState extends State<BudgetsRow> {
   double? _lastRemainingAmount;
   String? _currentCategoryId;
-  bool _hasInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeForCategory();
+    _initializeTracking();
   }
 
-  void _initializeForCategory() {
+  @override
+  void didUpdateWidget(BudgetsRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Add debug logging to see what's happening
+    print("🔄 BudgetsRow didUpdateWidget called");
+    print("📊 Old remaining: ${oldWidget.bObj["remaining"]}");
+    print("📊 New remaining: ${widget.bObj["remaining"]}");
+    print("📊 Old spendings count: ${(oldWidget.bObj["spendings"] as List?)?.length ?? 0}");
+    print("📊 New spendings count: ${(widget.bObj["spendings"] as List?)?.length ?? 0}");
+    
+    _checkForRemainingAmountChange();
+  }
+
+  void _initializeTracking() {
     String categoryId = widget.bObj["expenseId"]?.toString() ?? "";
-    var remainingAmount =
+    double remainingAmount =
         double.tryParse(widget.bObj["remaining"]?.toString() ?? "0") ?? 0;
 
-    if (categoryId.isNotEmpty && !_hasInitialized) {
-      _currentCategoryId = categoryId;
-      _lastRemainingAmount = remainingAmount;
-      _hasInitialized = true;
-    }
+    _currentCategoryId = categoryId;
+    _lastRemainingAmount = remainingAmount;
+
+    print("🔧 Initialized tracking for category: $categoryId, remaining: $remainingAmount");
+    print("📋 Initial spendings: ${widget.bObj["spendings"]}");
   }
 
-  void _updateSavingIfNeeded(double currentRemainingAmount, String categoryId) {
+  void _checkForRemainingAmountChange() {
+    String categoryId = widget.bObj["expenseId"]?.toString() ?? "";
+    double currentRemainingAmount =
+        double.tryParse(widget.bObj["remaining"]?.toString() ?? "0") ?? 0;
+
+    print("🔍 Checking remaining amount change:");
+    print("   - Category ID: $categoryId");
+    print("   - Current remaining: $currentRemainingAmount");
+    print("   - Last remaining: $_lastRemainingAmount");
+    print("   - Category matches: ${categoryId == _currentCategoryId}");
+
     if (categoryId.isNotEmpty &&
         categoryId == _currentCategoryId &&
-        _hasInitialized &&
         _lastRemainingAmount != null &&
         _lastRemainingAmount != currentRemainingAmount) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        try {
-          if (Get.isRegistered<SavingController>()) {
-            Get.find<SavingController>()
-                .updateSaving(
-                  categoryId: categoryId,
-                  newAmount: currentRemainingAmount,
-                )
-                .then((_) {})
-                .catchError((error) {});
-          }
-        } catch (e) {}
-      });
-
+      print("✅ Triggering auto-save update!");
+      _updateSaving(categoryId, currentRemainingAmount);
       _lastRemainingAmount = currentRemainingAmount;
+    } else {
+      print("❌ No update needed or conditions not met");
     }
   }
 
-void _showEditCategoryDialog(String categoryId, String currentName, String expenseId) {
-  TextEditingController nameCtrl = TextEditingController(text: currentName);
-  TextEditingController amountCtrl = TextEditingController(
-    text: widget.bObj["budget"]?.toString() ?? "0",
-  );
+  void _updateSaving(String categoryId, double remainingAmount) {
+    try {
+      if (Get.isRegistered<SavingController>()) {
+        final savingController = Get.find<SavingController>();
+        print("💰 Updating saving: $categoryId -> $remainingAmount");
 
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text("Edit Category"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: nameCtrl,
-            decoration: const InputDecoration(labelText: "Category Name"),
+        savingController.updateSaving(categoryId, remainingAmount).then((_) {
+          print("✅ Saving update successful");
+        }).catchError((error) {
+          print("❌ Saving update failed: $error");
+        });
+      } else {
+        print("⚠️ SavingController not registered");
+      }
+    } catch (e) {
+      print("❌ Error in _updateSaving: $e");
+    }
+  }
+
+  void _showEditCategoryDialog(
+      String categoryId, String currentName, String expenseId) {
+    TextEditingController nameCtrl = TextEditingController(text: currentName);
+    TextEditingController amountCtrl = TextEditingController(
+      text: widget.bObj["budget"]?.toString() ?? "0",
+    );
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Edit Category"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: "Category Name"),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: amountCtrl,
+              decoration: const InputDecoration(labelText: "Amount"),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              final newCategory = nameCtrl.text.trim();
+              final newAmount = double.tryParse(amountCtrl.text.trim()) ??
+                  (double.tryParse(widget.bObj["budget"]?.toString() ?? "0") ??
+                      0);
+
+              if (newCategory.isNotEmpty) {
+                Get.find<ExpenseController>().updateExpense(
+                  expenseId: categoryId,
+                  newCategory: newCategory,
+                  newAmount: newAmount,
+                );
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Save"),
           ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: amountCtrl,
-            decoration: const InputDecoration(labelText: "Amount"),
-            keyboardType: TextInputType.number,
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            final newCategory = nameCtrl.text.trim();
-            final newAmount =
-                double.tryParse(amountCtrl.text.trim()) ??
-                (double.tryParse(widget.bObj["budget"]?.toString() ?? "0") ?? 0);
-
-            if (newCategory.isNotEmpty) {
-              Get.find<ExpenseController>().updateExpense(
-                expenseId: categoryId,
-                newCategory: newCategory,
-                newAmount: newAmount,
-
-              );
-              Navigator.pop(context);
-            }
-          },
-          child: const Text("Save"),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
-        ),
-      ],
-    ),
-  );
-}
-
+    );
+  }
 
   void _showDeleteCategoryConfirm(String categoryId) {
     showDialog(
@@ -142,8 +171,8 @@ void _showEditCategoryDialog(String categoryId, String currentName, String expen
     );
   }
 
-  void _showEditSpendingDialog(
-      String spendingId, String currentName, double currentAmount,  String expenseId,) {
+  void _showEditSpendingDialog(String spendingId, String currentName,
+      double currentAmount, String expenseId) {
     TextEditingController nameCtrl = TextEditingController(text: currentName);
     TextEditingController amountCtrl =
         TextEditingController(text: currentAmount.toString());
@@ -170,15 +199,32 @@ void _showEditCategoryDialog(String categoryId, String currentName, String expen
               final newName = nameCtrl.text.trim();
               final newAmount =
                   double.tryParse(amountCtrl.text.trim()) ?? currentAmount;
-                  
+
               if (newName.isNotEmpty) {
-                Get.find<SpendingController>().updateSpending2(
+                final spendingController = Get.find<SpendingController>();
+                spendingController
+                    .updateSpending2(
                   spendingId,
                   newAmount,
                   newName,
-                  expenseId, 
-                  
-                );
+                  expenseId,
+                )
+                    .then((_) {
+                  // Recalculate used and remaining
+                  return spendingController
+                      .recalculateUsedAndRemaining(expenseId);
+                }).then((_) {
+                  // Force refresh of expense controller data
+                  final expenseController = Get.find<ExpenseController>();
+                  return expenseController.currentMonthExpenses;
+                }).then((_) {
+                  // Force a check for remaining amount change after update
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      setState(() {}); // This will trigger didUpdateWidget
+                    }
+                  });
+                });
                 Navigator.pop(context);
               }
             },
@@ -201,7 +247,22 @@ void _showEditCategoryDialog(String categoryId, String currentName, String expen
         actions: [
           TextButton(
               onPressed: () {
-                Get.find<SpendingController>().deleteSpending(spendingId);
+                final spendingController = Get.find<SpendingController>();
+                spendingController.deleteSpending(spendingId).then((_) {
+                  return spendingController.recalculateUsedAndRemaining(
+                      widget.bObj["expenseId"]?.toString() ?? "");
+                }).then((_) {
+                  // Force refresh of expense controller data
+                  final expenseController = Get.find<ExpenseController>();
+                  return expenseController.currentMonthExpenses;
+                }).then((_) {
+                  // Force a check for remaining amount change after deletion
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      setState(() {}); // This will trigger didUpdateWidget
+                    }
+                  });
+                });
                 Navigator.pop(context);
               },
               child: const Text("Delete")),
@@ -225,9 +286,11 @@ void _showEditCategoryDialog(String categoryId, String currentName, String expen
     var category = widget.bObj["category"] ?? "";
     String categoryId = widget.bObj["expenseId"]?.toString() ?? "";
 
-    if (_hasInitialized && categoryId == _currentCategoryId) {
-      _updateSavingIfNeeded(remainingAmount, categoryId);
-    }
+    // Debug logging for build method
+    print("🏗️ Building BudgetsRow for category: $category");
+    print("   Used: $usedAmount, Remaining: $remainingAmount, Budget: $totalBudget");
+    print("   Spendings count: ${(widget.bObj["spendings"] as List?)?.length ?? 0}");
+    print("🔍 About to build ${(widget.bObj["spendings"] as List?)?.length ?? 0} spending items");
 
     return GetBuilder<ExpenseController>(builder: (ctrl) {
       return Padding(
@@ -250,7 +313,6 @@ void _showEditCategoryDialog(String categoryId, String currentName, String expen
             child: Column(
               children: [
                 Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -282,12 +344,12 @@ void _showEditCategoryDialog(String categoryId, String currentName, String expen
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(
-                                width: 8), // spacing between amount and menu
+                            const SizedBox(width: 8),
                             PopupMenuButton<String>(
                               onSelected: (value) {
                                 if (value == 'edit') {
-                                  _showEditCategoryDialog(categoryId, category, categoryId);
+                                  _showEditCategoryDialog(
+                                      categoryId, category, categoryId);
                                 } else if (value == 'delete') {
                                   _showDeleteCategoryConfirm(categoryId);
                                 }
@@ -303,8 +365,6 @@ void _showEditCategoryDialog(String categoryId, String currentName, String expen
                         ),
                       ],
                     ),
-
-                    // Right side: Popup menu
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -324,59 +384,60 @@ void _showEditCategoryDialog(String categoryId, String currentName, String expen
                   ],
                 ),
                 const SizedBox(height: 6),
-                Container(
-                  constraints: const BoxConstraints(maxHeight: 100),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: (widget.bObj["spendings"] as List?)?.length ?? 0,
-                    itemBuilder: (context, index) {
-                      final spending =
-                          (widget.bObj["spendings"] as List)[index] ?? {};
-                         
-                     
-                      String spendingName = spending["name"] ?? "";
-                       String spendingId = spending["spendingId"] ?? "";
-                      double amount =
-                          (spending["amount"] as num?)?.toDouble() ?? 0;
+                
+                // FIXED SPENDING LIST - Removed height constraint
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: (widget.bObj["spendings"] as List?)?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    print("🏗️ Building spending item $index");
+                    final spending = (widget.bObj["spendings"] as List)[index] ?? {};
+                    String spendingName = spending["name"] ?? "";
+                    String spendingId = spending["spendingId"] ?? "";
+                    double amount = (spending["amount"] as num?)?.toDouble() ?? 0;
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(spendingName,
-                                style: TextStyle(
-                                    color: TColor.gray80, fontSize: 12)),
-                            Row(
-                              children: [
-                                Text("${amount.toStringAsFixed(0)} Rwf",
-                                    style: TextStyle(
-                                        color: TColor.gray60, fontSize: 12)),
-                                PopupMenuButton<String>(
-                                  onSelected: (value) {
-                                    if (value == 'edit') {
-                                      _showEditSpendingDialog(
-                                          spendingId, spendingName, amount,categoryId);
-                                    } else if (value == 'delete') {
-                                      _showDeleteSpendingConfirm(spendingId);
-                                    }
-                                  },
-                                  itemBuilder: (context) => [
-                                    const PopupMenuItem(
-                                        value: 'edit', child: Text('Edit')),
-                                    const PopupMenuItem(
-                                        value: 'delete', child: Text('Delete')),
-                                  ],
-                                ),
-                              ],
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              spendingName,
+                              style: TextStyle(color: TColor.gray80, fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                          ),
+                          Row(
+                            children: [
+                              Text("${amount.toStringAsFixed(0)} Rwf",
+                                  style: TextStyle(color: TColor.gray60, fontSize: 12)),
+                              const SizedBox(width: 4),
+                              PopupMenuButton<String>(
+                                onSelected: (value) {
+                                  if (value == 'edit') {
+                                    _showEditSpendingDialog(spendingId,
+                                        spendingName, amount, categoryId);
+                                  } else if (value == 'delete') {
+                                    _showDeleteSpendingConfirm(spendingId);
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                      value: 'edit', child: Text('Edit')),
+                                  const PopupMenuItem(
+                                      value: 'delete', child: Text('Delete')),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
+                
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
                   backgroundColor: TColor.gray60,

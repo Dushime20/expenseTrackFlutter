@@ -67,7 +67,7 @@ class _HomeHeaderState extends State<HomeHeader> {
         try {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           
-          // Handle different data types for amount field
+      
           double amount = 0.0;
           var rawAmount = data['amount'];
           
@@ -80,20 +80,20 @@ class _HomeHeaderState extends State<HomeHeader> {
           }
           
           totalSavingsAmount += amount;
-          print("💰 Added saving: ${data['name'] ?? 'Unnamed'} - Amount: $amount");
+        
           
         } catch (e) {
-          print("⚠️ Error processing document ${doc.id}: $e");
+         
           continue; // Skip this document and continue with others
         }
       }
 
       // Update the reactive variable
       totalSavings.value = totalSavingsAmount;
-      print("✅ Total savings calculated: \$${totalSavingsAmount.toStringAsFixed(2)}");
+
       
     } catch (e) {
-      print('❌ Error fetching total savings: $e');
+    
       totalSavings.value = 0.0;
     }
   }
