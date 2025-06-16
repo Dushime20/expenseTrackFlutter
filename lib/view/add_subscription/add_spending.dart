@@ -34,7 +34,9 @@ class _AddSpendingViewState extends State<AddSpendingView> {
   String? selectedCategoryId;
   double selectedCategoryBudget = 0.0;
   double selectedCategoryBudgetRemaining = 0.0;
+  double selectedSavingCategoryAmount = 0.0;
   double total = 0.0;
+  double savingAmountFromSaving = 0.0;
 
   // New variables for savings functionality
   bool useFromSavings = false;
@@ -114,11 +116,11 @@ class _AddSpendingViewState extends State<AddSpendingView> {
           (saving) => saving.categoryId == categoryId,
         );
 
-        print("Selected saving category: ${selectedSaving?.categoryName}");
+        print("Selected saving category: ${selectedSaving?.amount}");
 
         if (selectedSaving != null) {
           selectedSavingCategoryName = selectedSaving.categoryName;
-          // Don't update availableSavingAmount here - it stays as total savings
+          selectedSavingCategoryAmount = selectedSaving.amount;
         } else {
           selectedSavingCategoryName = null;
         }
@@ -148,9 +150,6 @@ class _AddSpendingViewState extends State<AddSpendingView> {
                   double.tryParse(amountValue.toString()) ?? 0.0;
               selectedCategoryBudgetRemaining =
                   double.tryParse(remainingValue.toString()) ?? 0.0;
-              print("remaining==== for amount====: $selectedCategoryBudget");
-              print(
-                  "remaining==== for budget: $selectedCategoryBudgetRemaining");
             } else {
               selectedCategoryBudget = 0.0;
             }
@@ -175,12 +174,11 @@ class _AddSpendingViewState extends State<AddSpendingView> {
       if (!useFromSavings) {
         selectedSavingCategoryId = null;
         selectedSavingCategoryName = null;
-        // Don't reset availableSavingAmount - keep total savings amount
+
         savingAmountCtrl.clear();
         regularAmountCtrl.clear();
         spendingCtrl.subAmountCtrl.clear();
       } else {
-        // Refresh total savings when enabling savings toggle
         fetchTotalSavingsAmount();
       }
     });
@@ -230,6 +228,23 @@ class _AddSpendingViewState extends State<AddSpendingView> {
       );
       return false;
     }
+ 
+
+     double savingAmount =
+        double.tryParse(savingAmountCtrl.text.trim()) ?? 0.0;
+            print("savingAmountFromSaving------------: $savingAmount");
+    print("selectedSavingCategoryAmount----------------: $selectedSavingCategoryAmount");
+    if ( savingAmount> 0 &&
+        savingAmount > selectedSavingCategoryAmount) {
+      Get.snackbar(
+        "Insufficient Savings",
+        "You tried to spend ${savingAmount} RWF but only ${selectedSavingCategoryAmount.toStringAsFixed(0)} RWF is available in savings.",
+        colorText: Theme.of(context).colorScheme.onError,
+        backgroundColor: Theme.of(context).colorScheme.error,
+        duration: const Duration(seconds: 4),
+      );
+      return false;
+    }
 
     return true;
   }
@@ -249,7 +264,6 @@ class _AddSpendingViewState extends State<AddSpendingView> {
       return false;
     }
 
-    // Get and validate saving amount
     String savingAmountText = savingAmountCtrl.text.trim();
 
     if (savingAmountText.isEmpty) {
@@ -263,8 +277,7 @@ class _AddSpendingViewState extends State<AddSpendingView> {
     }
 
     double savingAmountToUse = double.tryParse(savingAmountText) ?? 0.0;
-
-    // CRITICAL CHECK: Saving amount must be > 0
+  
     if (savingAmountToUse <= 0) {
       Get.snackbar(
         "Invalid Saving Amount",
@@ -276,7 +289,6 @@ class _AddSpendingViewState extends State<AddSpendingView> {
       return false;
     }
 
-    // Check if saving amount exceeds total available savings
     if (savingAmountToUse > availableSavingAmount) {
       Get.snackbar(
         "Insufficient Savings",
@@ -371,7 +383,6 @@ class _AddSpendingViewState extends State<AddSpendingView> {
       }
       total = expectedTotal;
 
-      // Check if expected total matches spending amount
       if ((expectedTotal - spendingAmount).abs() > 0.01) {
         Get.snackbar(
           "Amount Mismatch",
