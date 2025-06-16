@@ -150,66 +150,97 @@ class ExpenseController extends GetxController {
   }
 
   // fetch category name of current month expense for logged in user
-  Future<List<Map<String, String>>> fetchCurrentMonthExpenseCategories() async {
-    try {
-      final user = auth.currentUser;
-      if (user == null) {
-        print('User not logged in');
-        return [];
-      }
-
-      final userId = user.uid;
-      final now = DateTime.now();
-
-      final startOfMonth = DateTime(now.year, now.month, 1);
-      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-
-      final snapshot = await expenseCollection
-          .where('userId', isEqualTo: userId)
-          .where('date',
-              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
-          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
-          .get();
-
-      // Use a Map to track total amount per category
-      final Map<String, double> categoryAmountMap = {};
-      final Map<String, String> categoryIdMap = {};
-
-      for (var doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final categoryId = doc.id;
-        final category = data['category'] as String?;
-        final amount = data['amount'] as num?; // Ensure it's a number
-
-        if (category != null && category.trim().isNotEmpty && amount != null) {
-          final trimmedCategory = category.trim();
-
-          categoryAmountMap[trimmedCategory] =
-              (categoryAmountMap[trimmedCategory] ?? 0) + amount.toDouble();
-
-          categoryIdMap[trimmedCategory] = categoryId;
-        }
-      }
-
-      final List<Map<String, String>> categories =
-          categoryAmountMap.entries.map((entry) {
-        final category = entry.key;
-        final totalAmount =
-            entry.value.toStringAsFixed(2); // format to 2 decimal places
-        final categoryId = categoryIdMap[category] ?? '';
-        return {
-          'category': category,
-          'categoryId': categoryId,
-          'amount': totalAmount,
-        };
-      }).toList();
-
-      return categories;
-    } catch (e) {
-      print('Error fetching categories: $e');
+Future<List<Map<String, String>>> fetchCurrentMonthExpenseCategories() async {
+  try {
+    final user = auth.currentUser;
+    if (user == null) {
+      print('User not logged in');
       return [];
     }
+
+    final userId = user.uid;
+    final now = DateTime.now();
+
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+    print("🔍 Fetching expenses for user: $userId");
+    print("🔍 Date range: $startOfMonth to $endOfMonth");
+
+    final snapshot = await expenseCollection
+        .where('userId', isEqualTo: userId)
+        .where('date',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+        .get();
+
+    print("🔍 Found ${snapshot.docs.length} documents");
+
+    final List<Map<String, String>> categories = [];
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final categoryId = doc.id;
+      
+      print("🔍 Processing document: $categoryId");
+      print("🔍 Raw data: $data");
+      
+      final category = data['category'] as String?;
+      final amount = data['amount'];
+      final remaining = data['remaining'];
+      final used = data['used'];
+      
+      print("🔍 Extracted values:");
+      print("   - category: $category (${category.runtimeType})");
+      print("   - amount: $amount (${amount.runtimeType})");
+      print("   - remaining: $remaining (${remaining.runtimeType})");
+      print("   - used: $used (${used.runtimeType})");
+
+      // Convert to double first, then to string
+      double amountDouble = _convertToDouble(amount);
+      double remainingDouble = _convertToDouble(remaining);
+      double usedDouble = _convertToDouble(used);
+      
+      print("🔍 Converted values:");
+      print("   - amountDouble: $amountDouble");
+      print("   - remainingDouble: $remainingDouble");
+      print("   - usedDouble: $usedDouble");
+
+      if (category != null && category.trim().isNotEmpty && amountDouble > 0) {
+        final categoryMap = {
+          'category': category.trim(),
+          'categoryId': categoryId,
+          'amount': amountDouble.toString(),
+          'remaining': remainingDouble.toString(),
+          'used': usedDouble.toString(),
+        };
+        
+        print("🔍 Adding to categories: $categoryMap");
+        categories.add(categoryMap);
+      } else {
+        print("⚠️ Skipping document due to validation failure");
+      }
+    }
+
+    print("📋 Final categories list: $categories");
+    return categories;
+  } catch (e) {
+    print('❌ Error fetching categories: $e');
+    return [];
   }
+}
+
+// Helper method to safely convert to double
+double _convertToDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is num) return value.toDouble();
+  if (value is String) {
+    return double.tryParse(value) ?? 0.0;
+  }
+  return 0.0;
+}
 
   // fetch current month expense for current logged in user category and amount,
   Future<void> fetchCurrentMonthExpenses() async {
@@ -406,122 +437,138 @@ class ExpenseController extends GetxController {
     }
   }
 
-Future<bool> updateExpenseRemaining(
-    String categoryId, double regularAmountFromBudget) async {
-  try {
-    // STEP 1: Find the target category in local state
-    final categories = currentMonthCategories;
-    
-    Map<String, String>? targetCategory;
-    int targetIndex = -1;
-    for (int i = 0; i < categories.length; i++) {
-      var category = categories[i];
-      if (category['categoryId'] == categoryId) {
-        targetCategory = category;
-        targetIndex = i;
-        break;
-      }
-    }
+  Future<bool> updateExpenseRemaining(
+      String categoryId, double regularAmountFromBudget) async {
+    try {
+      final categories = currentMonthCategories;
 
-    if (targetCategory == null) {
+      Map<String, String>? targetCategory;
+      int targetIndex = -1;
+      for (int i = 0; i < categories.length; i++) {
+        var category = categories[i];
+        if (category['categoryId'] == categoryId) {
+          targetCategory = category;
+          targetIndex = i;
+          break;
+        }
+      }
+
+      if (targetCategory == null) {
+        return false;
+      }
+
+      // STEP 2: Get the current document from Firebase
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('expense')
+          .doc(categoryId)
+          .get();
+
+      if (!docSnapshot.exists) {
+        return false;
+      }
+
+      final firebaseData = docSnapshot.data();
+      if (firebaseData == null) {
+        return false;
+      }
+
+      // STEP 3: Safely convert Firebase data to doubles
+      double safeToDouble(dynamic value) {
+        if (value is double) {
+          return value;
+        }
+        if (value is int) {
+          return value.toDouble();
+        }
+        if (value is String) {
+          double? parsed = double.tryParse(value);
+          return parsed ?? 0.0;
+        }
+        if (value is num) {
+          return value.toDouble();
+        }
+        return 0.0;
+      }
+
+      // Use Firebase data (source of truth)
+      double currentRemaining = safeToDouble(firebaseData['remaining']);
+      double currentUsed = safeToDouble(firebaseData['used']);
+
+      // Additional null safety check
+      if (currentRemaining < 0 && currentUsed < 0) {
+        // Both values defaulted to 0, might indicate missing data
+        return false;
+      }
+
+      // STEP 4: Check if remaining amount is sufficient before proceeding
+      if (currentRemaining <= 0) {
+        // Cannot spend when remaining is zero or negative
+        return false;
+      }
+
+      // Optional: Check if the spending amount exceeds remaining balance
+      if (regularAmountFromBudget > currentRemaining) {
+        // Cannot spend more than what's remaining
+        return false;
+      }
+
+      // STEP 5: Calculate new values
+      double newRemaining = currentRemaining - regularAmountFromBudget;
+      double newUsed = currentUsed + regularAmountFromBudget;
+
+      // STEP 6: Validate the new values
+      if (newRemaining.isNaN ||
+          newUsed.isNaN ||
+          newRemaining.isInfinite ||
+          newUsed.isInfinite) {
+        return false;
+      }
+
+      // STEP 6.1: Check if new remaining would be negative
+      if (newRemaining < 0) {
+        return false;
+      }
+
+      // STEP 7: Update Firebase with explicit double values
+      await FirebaseFirestore.instance
+          .collection('expense')
+          .doc(categoryId)
+          .update({
+        'remaining': newRemaining,
+        'used': newUsed,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // STEP 8: Update local state - Create new category map with String values
+      Map<String, String> updatedCategory = {};
+
+      // Copy all existing fields, converting everything to String
+      targetCategory.forEach((key, value) {
+        if (value != null) {
+          updatedCategory[key] = value.toString();
+        }
+      });
+
+      // Update the specific fields with new calculated values (as Strings)
+      updatedCategory['remaining'] = newRemaining.toString();
+      updatedCategory['used'] = newUsed.toString();
+
+      // Safety check before replacing
+      if (targetIndex >= 0 && targetIndex < currentMonthCategories.length) {
+        currentMonthCategories[targetIndex] = updatedCategory;
+        update(); // Refresh GetX state
+      } else {
+        return false;
+      }
+
+      return true;
+    } catch (e, stackTrace) {
+      if (e is FirebaseException) {
+        // Handle Firebase-specific errors if needed
+      }
       return false;
     }
-
-    // STEP 2: Get the current document from Firebase
-    final docSnapshot = await FirebaseFirestore.instance
-        .collection('expense')
-        .doc(categoryId)
-        .get();
-
-    if (!docSnapshot.exists) {
-      return false;
-    }
-
-    final firebaseData = docSnapshot.data();
-    if (firebaseData == null) {
-      return false;
-    }
-
-    // STEP 3: Safely convert Firebase data to doubles
-    double safeToDouble(dynamic value) {
-      if (value is double) {
-        return value;
-      }
-      if (value is int) {
-        return value.toDouble();
-      }
-      if (value is String) {
-        double? parsed = double.tryParse(value);
-        return parsed ?? 0.0;
-      }
-      if (value is num) {
-        return value.toDouble();
-      }
-      return 0.0;
-    }
-
-    // Use Firebase data (source of truth)
-    double currentRemaining = safeToDouble(firebaseData['remaining']);
-    double currentUsed = safeToDouble(firebaseData['used']);
-
-    // Additional null safety check
-    if (currentRemaining < 0 && currentUsed < 0) {
-      // Both values defaulted to 0, might indicate missing data
-      return false;
-    }
-
-    // STEP 4: Calculate new values
-    double newRemaining = currentRemaining - regularAmountFromBudget;
-    double newUsed = currentUsed + regularAmountFromBudget;
-
-    // STEP 5: Validate the new values
-    if (newRemaining.isNaN || newUsed.isNaN || 
-        newRemaining.isInfinite || newUsed.isInfinite) {
-      return false;
-    }
-
-    // STEP 6: Update Firebase with explicit double values
-    await FirebaseFirestore.instance
-        .collection('expense')
-        .doc(categoryId)
-        .update({
-      'remaining': newRemaining,
-      'used': newUsed,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-
-    // STEP 7: Update local state - Create new category map with String values
-    Map<String, String> updatedCategory = {};
-    
-    // Copy all existing fields, converting everything to String
-    targetCategory.forEach((key, value) {
-      if (value != null) {
-        updatedCategory[key] = value.toString();
-      }
-    });
-    
-    // Update the specific fields with new calculated values (as Strings)
-    updatedCategory['remaining'] = newRemaining.toString();
-    updatedCategory['used'] = newUsed.toString();
-    
-    // Safety check before replacing
-    if (targetIndex >= 0 && targetIndex < currentMonthCategories.length) {
-      currentMonthCategories[targetIndex] = updatedCategory;
-      update(); // Refresh GetX state
-    } else {
-      return false;
-    }
-
-    return true;
-
-  } catch (e, stackTrace) {
-    if (e is FirebaseException) {
-      // Handle Firebase-specific errors if needed
-    }
-    return false;
   }
-}
-
 }
 
 Future<void> addSaving({
@@ -538,10 +585,9 @@ Future<void> addSaving({
 
     final savingCollection = FirebaseFirestore.instance.collection('saving');
 
-   final now = DateTime.now().toUtc(); // Convert to UTC
-final startOfMonth = DateTime.utc(now.year, now.month, 1);
-final endOfMonth = DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59);
-
+    final now = DateTime.now().toUtc(); // Convert to UTC
+    final startOfMonth = DateTime.utc(now.year, now.month, 1);
+    final endOfMonth = DateTime.utc(now.year, now.month + 1, 0, 23, 59, 59);
 
     final existing = await savingCollection
         .where('userId', isEqualTo: user.uid)

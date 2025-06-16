@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:untitled/controller/expense_controller.dart';
-import 'package:untitled/controller/saving_contoller.dart';
 import 'package:untitled/controller/spending_controller.dart';
 import '../common/color_extension.dart';
 
@@ -32,13 +31,7 @@ class _BudgetsRowState extends State<BudgetsRow> {
   @override
   void didUpdateWidget(BudgetsRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Add debug logging to see what's happening
-    print("🔄 BudgetsRow didUpdateWidget called");
-    print("📊 Old remaining: ${oldWidget.bObj["remaining"]}");
-    print("📊 New remaining: ${widget.bObj["remaining"]}");
-    print("📊 Old spendings count: ${(oldWidget.bObj["spendings"] as List?)?.length ?? 0}");
-    print("📊 New spendings count: ${(widget.bObj["spendings"] as List?)?.length ?? 0}");
-    
+
     _checkForRemainingAmountChange();
   }
 
@@ -49,9 +42,6 @@ class _BudgetsRowState extends State<BudgetsRow> {
 
     _currentCategoryId = categoryId;
     _lastRemainingAmount = remainingAmount;
-
-    print("🔧 Initialized tracking for category: $categoryId, remaining: $remainingAmount");
-    print("📋 Initial spendings: ${widget.bObj["spendings"]}");
   }
 
   void _checkForRemainingAmountChange() {
@@ -59,42 +49,16 @@ class _BudgetsRowState extends State<BudgetsRow> {
     double currentRemainingAmount =
         double.tryParse(widget.bObj["remaining"]?.toString() ?? "0") ?? 0;
 
-    print("🔍 Checking remaining amount change:");
-    print("   - Category ID: $categoryId");
-    print("   - Current remaining: $currentRemainingAmount");
-    print("   - Last remaining: $_lastRemainingAmount");
-    print("   - Category matches: ${categoryId == _currentCategoryId}");
-
     if (categoryId.isNotEmpty &&
         categoryId == _currentCategoryId &&
         _lastRemainingAmount != null &&
         _lastRemainingAmount != currentRemainingAmount) {
-      print("✅ Triggering auto-save update!");
-      _updateSaving(categoryId, currentRemainingAmount);
+     
       _lastRemainingAmount = currentRemainingAmount;
-    } else {
-      print("❌ No update needed or conditions not met");
-    }
+    } else {}
   }
 
-  void _updateSaving(String categoryId, double remainingAmount) {
-    try {
-      if (Get.isRegistered<SavingController>()) {
-        final savingController = Get.find<SavingController>();
-        print("💰 Updating saving: $categoryId -> $remainingAmount");
-
-        savingController.updateSaving(categoryId, remainingAmount).then((_) {
-          print("✅ Saving update successful");
-        }).catchError((error) {
-          print("❌ Saving update failed: $error");
-        });
-      } else {
-        print("⚠️ SavingController not registered");
-      }
-    } catch (e) {
-      print("❌ Error in _updateSaving: $e");
-    }
-  }
+  
 
   void _showEditCategoryDialog(
       String categoryId, String currentName, String expenseId) {
@@ -150,26 +114,26 @@ class _BudgetsRowState extends State<BudgetsRow> {
     );
   }
 
-  void _showDeleteCategoryConfirm(String categoryId) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Delete Category"),
-        content: const Text("Are you sure you want to delete this category?"),
-        actions: [
-          TextButton(
-              onPressed: () {
-                Get.find<ExpenseController>().deleteExpense(categoryId);
-                Navigator.pop(context);
-              },
-              child: const Text("Delete")),
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel")),
-        ],
-      ),
-    );
-  }
+  // void _showDeleteCategoryConfirm(String categoryId) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (_) => AlertDialog(
+  //       title: const Text("Delete Category"),
+  //       content: const Text("Are you sure you want to delete this category?"),
+  //       actions: [
+  //         TextButton(
+  //             onPressed: () {
+  //               Get.find<ExpenseController>().deleteExpense(categoryId);
+  //               Navigator.pop(context);
+  //             },
+  //             child: const Text("Delete")),
+  //         TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child: const Text("Cancel")),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _showEditSpendingDialog(String spendingId, String currentName,
       double currentAmount, String expenseId) {
@@ -274,6 +238,91 @@ class _BudgetsRowState extends State<BudgetsRow> {
     );
   }
 
+  // ADDED: Missing _showAllSpendingsDialog method
+  void _showAllSpendingsDialog() {
+    final spendings = (widget.bObj["spendings"] as List?) ?? [];
+    String categoryId = widget.bObj["expenseId"]?.toString() ?? "";
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("All Spendings - ${widget.bObj["category"]}"),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: spendings.length,
+            itemBuilder: (context, index) {
+              final spending = spendings[index];
+              String spendingName = spending["name"] ?? "";
+              String spendingId = spending["spendingId"] ?? "";
+              double amount = (spending["amount"] as num?)?.toDouble() ?? 0;
+
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 2),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          spendingName,
+                          style: TextStyle(
+                            color: TColor.gray80,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            "${amount.toStringAsFixed(0)} Rwf",
+                            style: TextStyle(
+                              color: TColor.gray60,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          PopupMenuButton<String>(
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                Navigator.pop(context); // Close dialog first
+                                _showEditSpendingDialog(spendingId,
+                                    spendingName, amount, categoryId);
+                              } else if (value == 'delete') {
+                                Navigator.pop(context); // Close dialog first
+                                _showDeleteSpendingConfirm(spendingId);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                  value: 'edit', child: Text('Edit')),
+                              // const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Close"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var usedAmount =
@@ -288,9 +337,12 @@ class _BudgetsRowState extends State<BudgetsRow> {
 
     // Debug logging for build method
     print("🏗️ Building BudgetsRow for category: $category");
-    print("   Used: $usedAmount, Remaining: $remainingAmount, Budget: $totalBudget");
-    print("   Spendings count: ${(widget.bObj["spendings"] as List?)?.length ?? 0}");
-    print("🔍 About to build ${(widget.bObj["spendings"] as List?)?.length ?? 0} spending items");
+    print(
+        "   Used: $usedAmount, Remaining: $remainingAmount, Budget: $totalBudget");
+    print(
+        "   Spendings count: ${(widget.bObj["spendings"] as List?)?.length ?? 0}");
+    print(
+        "🔍 About to build ${(widget.bObj["spendings"] as List?)?.length ?? 0} spending items");
 
     return GetBuilder<ExpenseController>(builder: (ctrl) {
       return Padding(
@@ -312,55 +364,53 @@ class _BudgetsRowState extends State<BudgetsRow> {
             ),
             child: Column(
               children: [
+                
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Left side: category name
+                    Expanded(
+                      child: Text(
+                        category,
+                        style: TextStyle(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? TColor.white
+                              : TColor.gray60,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    // Right side: amount + menu
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Left side: category name
                         Text(
-                          category,
+                          "${widget.bObj["budget"]} Rwf",
                           style: TextStyle(
                             color:
                                 Theme.of(context).brightness == Brightness.dark
-                                    ? TColor.white
-                                    : TColor.gray60,
+                                    ? TColor.white.withOpacity(0.9)
+                                    : TColor.gray60.withOpacity(0.9),
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-
-                        // Right side: amount + menu
-                        Row(
-                          children: [
-                            Text(
-                              "${widget.bObj["budget"]} Rwf",
-                              style: TextStyle(
-                                color: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? TColor.white.withOpacity(0.9)
-                                    : TColor.gray60.withOpacity(0.9),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'edit') {
-                                  _showEditCategoryDialog(
-                                      categoryId, category, categoryId);
-                                } else if (value == 'delete') {
-                                  _showDeleteCategoryConfirm(categoryId);
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                    value: 'edit', child: Text('Edit')),
-                                const PopupMenuItem(
-                                    value: 'delete', child: Text('Delete')),
-                              ],
-                            ),
+                        const SizedBox(width: 8),
+                        PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              _showEditCategoryDialog(
+                                  categoryId, category, categoryId);
+                            } 
+                            // else if (value == 'delete') {
+                            //   _showDeleteCategoryConfirm(categoryId);
+                            // }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                                value: 'edit', child: Text('Edit')),
+                            // const PopupMenuItem(value: 'delete', child: Text('Delete')),
                           ],
                         ),
                       ],
@@ -384,18 +434,17 @@ class _BudgetsRowState extends State<BudgetsRow> {
                   ],
                 ),
                 const SizedBox(height: 6),
-                
-                // FIXED SPENDING LIST - Removed height constraint
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: (widget.bObj["spendings"] as List?)?.length ?? 0,
-                  itemBuilder: (context, index) {
-                    print("🏗️ Building spending item $index");
-                    final spending = (widget.bObj["spendings"] as List)[index] ?? {};
+
+                // SHOW ONLY FIRST 2 SPENDINGS
+                ...(() {
+                  final spendings = (widget.bObj["spendings"] as List?) ?? [];
+                  final displaySpendings = spendings.take(2).toList();
+
+                  return displaySpendings.map<Widget>((spending) {
                     String spendingName = spending["name"] ?? "";
                     String spendingId = spending["spendingId"] ?? "";
-                    double amount = (spending["amount"] as num?)?.toDouble() ?? 0;
+                    double amount =
+                        (spending["amount"] as num?)?.toDouble() ?? 0;
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -405,14 +454,16 @@ class _BudgetsRowState extends State<BudgetsRow> {
                           Expanded(
                             child: Text(
                               spendingName,
-                              style: TextStyle(color: TColor.gray80, fontSize: 12),
+                              style:
+                                  TextStyle(color: TColor.gray80, fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Row(
                             children: [
                               Text("${amount.toStringAsFixed(0)} Rwf",
-                                  style: TextStyle(color: TColor.gray60, fontSize: 12)),
+                                  style: TextStyle(
+                                      color: TColor.gray60, fontSize: 12)),
                               const SizedBox(width: 4),
                               PopupMenuButton<String>(
                                 onSelected: (value) {
@@ -426,8 +477,8 @@ class _BudgetsRowState extends State<BudgetsRow> {
                                 itemBuilder: (context) => [
                                   const PopupMenuItem(
                                       value: 'edit', child: Text('Edit')),
-                                  const PopupMenuItem(
-                                      value: 'delete', child: Text('Delete')),
+                                  // const PopupMenuItem(
+                                  //     value: 'delete', child: Text('Delete')),
                                 ],
                               ),
                             ],
@@ -435,9 +486,43 @@ class _BudgetsRowState extends State<BudgetsRow> {
                         ],
                       ),
                     );
-                  },
-                ),
-                
+                  }).toList();
+                })(),
+
+                // VIEW MORE BUTTON - FIXED: Now uses TColor.primary
+                if (((widget.bObj["spendings"] as List?)?.length ?? 0) > 2) ...[
+                  const SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: () {
+                      _showAllSpendingsDialog();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "View ${((widget.bObj["spendings"] as List?)?.length ?? 0) - 2} more",
+                            style: TextStyle(
+                              color:
+                                  TColor.primary, // FIXED: Using TColor.primary
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            size: 16,
+                            color:
+                                TColor.primary, // FIXED: Using TColor.primary
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
                   backgroundColor: TColor.gray60,

@@ -108,25 +108,21 @@ class SavingController extends GetxController {
     }
   }
 
-Future<bool> updateSaving(
-  String categoryId,
-  double newAmount) async {
+Future<bool> updateSaving(String categoryId, double amountToSubtract) async {
   try {
-    // Check if user is authenticated
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       print("Error: User not logged in");
       return false;
     }
 
-    // Validate input
     if (categoryId.isEmpty) {
       print("Error: Category ID cannot be empty");
       return false;
     }
 
-    if (newAmount < 0) {
-      print("Error: Amount cannot be negative");
+    if (amountToSubtract < 0) {
+      print("Error: Amount to subtract cannot be negative");
       return false;
     }
 
@@ -135,53 +131,51 @@ Future<bool> updateSaving(
     final startOfMonth = DateTime(now.year, now.month, 1);
     final endOfMonth = DateTime(now.year, now.month + 1, 0);
 
-    // Query for existing saving in current month
     final querySnapshot = await savingCollection
         .where('userId', isEqualTo: user.uid)
         .where('categoryId', isEqualTo: categoryId)
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
         .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
-        .limit(1) // Only need one document
+        .limit(1)
         .get();
 
-    final Map<String, dynamic> savingData = {
-      'amount': newAmount,
-      'date': Timestamp.now(),
-      'updatedAt': Timestamp.now(),
-    };
-
-   
     if (querySnapshot.docs.isNotEmpty) {
-      // Update existing document
-      final docId = querySnapshot.docs.first.id;
-      await savingCollection.doc(docId).update(savingData);
-      print("Saving updated successfully for category: $categoryId");
-    } else {
-      // Create new document
-      savingData.addAll({
-        'userId': user.uid,
-        'categoryId': categoryId,
-        'createdAt': Timestamp.now(),
+      final doc = querySnapshot.docs.first;
+      final docId = doc.id;
+      final currentAmount = (doc.data()['amount'] ?? 0).toDouble();
+
+      final updatedAmount = currentAmount - amountToSubtract;
+
+      if (updatedAmount < 0) {
+        print("Error: Cannot subtract more than current savings amount");
+        return false;
+      }
+
+      await savingCollection.doc(docId).update({
+        'amount': updatedAmount,
+        'updatedAt': Timestamp.now(),
+        'date': Timestamp.now(),
       });
-      
-      final docRef = await savingCollection.add(savingData);
-      print("New saving created with ID: ${docRef.id} for category: $categoryId");
+
+      print("✅ Saving updated. New amount: $updatedAmount");
+    } else {
+      print("❌ No saving document found for this category in the current month.");
+      return false;
     }
 
-    // Refresh data after update
-    await loadsavingFromFirebase(); // Reload individual savings
-    await fetchTotalSavings(); // Refresh total savings
-    
+    await loadsavingFromFirebase();
+    await fetchTotalSavings();
     return true;
 
   } on FirebaseException catch (e) {
-    print("Firebase error updating saving: ${e.code} - ${e.message}");
+    print("🔥 Firebase error: ${e.code} - ${e.message}");
     return false;
   } catch (e) {
-    print("Unexpected error updating saving: $e");
+    print("🚨 Unexpected error: $e");
     return false;
   }
 }
+
 
  
 

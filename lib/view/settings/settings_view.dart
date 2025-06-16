@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:untitled/common/color_extension.dart';
 import 'package:untitled/controller/theme_controller.dart';
 import 'package:untitled/report/expense_report.dart';
 import 'package:untitled/report/income_report.dart';
@@ -114,11 +115,15 @@ class _SettingsViewState extends State<SettingsView> {
                     ),
                     child: CircleAvatar(
                       radius: 45,
-                      backgroundColor: theme.cardColor,
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark 
+                    ? TColor.gray80 
+                    : theme.cardColor,
                       child: Icon(
                         Icons.person,
                         size: 50,
-                        color: primaryColor,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                    ? TColor.white
+                    : theme.primaryColor,
                       ),
                     ),
                   ),

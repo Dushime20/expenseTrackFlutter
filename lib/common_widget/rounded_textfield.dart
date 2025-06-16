@@ -76,7 +76,7 @@ class _RoundedTextFieldState extends State<RoundedTextField> {
         ? theme.primaryColor 
         : (isDark ? TColor.gray10 : TColor.gray10);
     
-    final backgroundColor = isDark ? TColor.gray60 : TColor.white;
+    final backgroundColor = isDark ? TColor.gray80 : TColor.white;
     final textColor = isDark ? TColor.white : TColor.gray60;
     final hintColor = isDark 
         ? TColor.white.withOpacity(0.6) 

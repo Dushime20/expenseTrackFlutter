@@ -128,15 +128,9 @@ class SavingsCategoryDropdown extends StatelessWidget {
               },
             ),
             if (dropdownValue != null) ...[
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  "Available amount: ${availableSavingAmount.toStringAsFixed(0)} RWF",
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+              
               ),
               const SizedBox(height: 10),
               RoundedTextField(

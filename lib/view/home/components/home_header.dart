@@ -28,10 +28,10 @@ class HomeHeader extends StatefulWidget {
 class _HomeHeaderState extends State<HomeHeader> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
-  
+
   // Reactive variable for total savings
   final RxDouble totalSavings = 0.0.obs;
-  
+
   @override
   void initState() {
     super.initState();
@@ -42,15 +42,14 @@ class _HomeHeaderState extends State<HomeHeader> {
   Future<void> fetchTotalSavings() async {
     try {
       final currentUser = auth.currentUser;
-      
+
       if (currentUser == null) {
-        print("❌ No user logged in");
+        ;
         totalSavings.value = 0.0;
         return;
       }
 
       String userId = currentUser.uid;
-      print("🔍 Fetching savings for user: $userId");
 
       // Query savings for current user
       QuerySnapshot savingsSnapshot = await firestore
@@ -58,19 +57,16 @@ class _HomeHeaderState extends State<HomeHeader> {
           .where('userId', isEqualTo: userId)
           .get();
 
-      print("📊 Found ${savingsSnapshot.docs.length} saving records");
-
       double totalSavingsAmount = 0.0;
 
       // Process each saving document
       for (QueryDocumentSnapshot doc in savingsSnapshot.docs) {
         try {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          
-      
+
           double amount = 0.0;
           var rawAmount = data['amount'];
-          
+
           if (rawAmount != null) {
             if (rawAmount is num) {
               amount = rawAmount.toDouble();
@@ -78,29 +74,24 @@ class _HomeHeaderState extends State<HomeHeader> {
               amount = double.tryParse(rawAmount) ?? 0.0;
             }
           }
-          
+
           totalSavingsAmount += amount;
-        
-          
         } catch (e) {
-         
           continue; // Skip this document and continue with others
         }
       }
 
       // Update the reactive variable
       totalSavings.value = totalSavingsAmount;
-
-      
     } catch (e) {
-    
       totalSavings.value = 0.0;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
+    final textColor =
+        Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
     final grayColor = Theme.of(context).disabledColor;
     final cardBackground = Theme.of(context).cardColor;
     final primaryColor = Theme.of(context).primaryColor;
@@ -133,17 +124,20 @@ class _HomeHeaderState extends State<HomeHeader> {
           child: Column(
             children: [
               // Header with Welcome Text
-              _buildWelcomeHeader(context, textColor, grayColor, cardBackground),
-              
+              _buildWelcomeHeader(
+                  context, textColor, grayColor, cardBackground),
+
               const SizedBox(height: 30),
-              
+
               // Central Content - Monthly Stats
-              _buildMonthlyStats(context, textColor, grayColor, cardBackground, primaryColor),
-              
+              _buildMonthlyStats(
+                  context, textColor, grayColor, cardBackground, primaryColor),
+
               const SizedBox(height: 24),
-              
+
               // Statistics Cards
-              _buildStatisticsCards(context, cardBackground, textColor, grayColor),
+              _buildStatisticsCards(
+                  context, cardBackground, textColor, grayColor),
             ],
           ),
         ),
@@ -151,7 +145,8 @@ class _HomeHeaderState extends State<HomeHeader> {
     );
   }
 
-  Widget _buildWelcomeHeader(BuildContext context, Color textColor, Color grayColor, Color cardBackground) {
+  Widget _buildWelcomeHeader(BuildContext context, Color textColor,
+      Color grayColor, Color cardBackground) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -215,7 +210,8 @@ class _HomeHeaderState extends State<HomeHeader> {
     );
   }
 
-  Widget _buildMonthlyStats(BuildContext context, Color textColor, Color grayColor, Color cardBackground, Color primaryColor) {
+  Widget _buildMonthlyStats(BuildContext context, Color textColor,
+      Color grayColor, Color cardBackground, Color primaryColor) {
     return FadeTransition(
       opacity: widget.fadeAnimation,
       child: Column(
@@ -253,9 +249,9 @@ class _HomeHeaderState extends State<HomeHeader> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Monthly Income
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -291,7 +287,7 @@ class _HomeHeaderState extends State<HomeHeader> {
           ),
 
           const SizedBox(height: 16),
-          
+
           // Total Savings - Now using local totalSavings variable
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -303,24 +299,22 @@ class _HomeHeaderState extends State<HomeHeader> {
               ),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Obx(() => Text(
                           "${totalSavings.value.toStringAsFixed(2)} Frw",
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.green,
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.5,
                           ),
                         )),
-                    // Refresh button for savings
                     IconButton(
-                      onPressed: () {
-                        fetchTotalSavings();
-                      },
+                      onPressed: fetchTotalSavings,
                       icon: const Icon(
                         Icons.refresh,
                         size: 20,
@@ -340,20 +334,22 @@ class _HomeHeaderState extends State<HomeHeader> {
                 ),
               ],
             ),
-          ),
+          )
         ],
       ),
     );
   }
 
-  Widget _buildStatisticsCards(BuildContext context, Color cardBackground, Color textColor, Color grayColor) {
+  Widget _buildStatisticsCards(BuildContext context, Color cardBackground,
+      Color textColor, Color grayColor) {
     return FadeTransition(
       opacity: widget.fadeAnimation,
       child: Row(
         children: [
           Obx(() => StatCard(
                 title: "Total expenses",
-                value: widget.spendingController.totalSpendingCount.value.toString(),
+                value: widget.spendingController.totalSpendingCount.value
+                    .toString(),
                 icon: Icons.receipt_long_outlined,
                 cardBackground: cardBackground,
                 textColor: textColor,
@@ -363,7 +359,8 @@ class _HomeHeaderState extends State<HomeHeader> {
           const SizedBox(width: 8),
           Obx(() => StatCard(
                 title: "Lowest expense",
-                value: "${widget.spendingController.lowestSpending.value.toStringAsFixed(0)}",
+                value:
+                    "${widget.spendingController.lowestSpending.value.toStringAsFixed(0)}",
                 icon: Icons.trending_down_outlined,
                 cardBackground: cardBackground,
                 textColor: textColor,
@@ -373,7 +370,8 @@ class _HomeHeaderState extends State<HomeHeader> {
           const SizedBox(width: 8),
           Obx(() => StatCard(
                 title: "Highest expense",
-                value: "${widget.spendingController.highestSpending.value.toStringAsFixed(0)}",
+                value:
+                    "${widget.spendingController.highestSpending.value.toStringAsFixed(0)}",
                 icon: Icons.trending_up_outlined,
                 cardBackground: cardBackground,
                 textColor: textColor,

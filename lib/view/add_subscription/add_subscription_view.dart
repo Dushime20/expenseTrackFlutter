@@ -149,12 +149,12 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
   void handleSubmit() async {
     if (!_validateInputs()) return;
 
-    // Show confirmation dialog for large amounts
+   
     final amount = double.parse(expenseCtrl.amountCtrl.text.trim());
     if (amount > 10000) {
       final confirmed = await _showConfirmationDialog(
         "Large Amount", 
-        "You're about to add an expense of \$${amount.toStringAsFixed(2)}. Are you sure?"
+        "You're about to add an expense of ${amount.toStringAsFixed(2)} Frw. Are you sure?"
       );
       if (!confirmed) return;
     }
@@ -205,7 +205,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel'),
+              child: Text('Cancel',style: TextStyle( color: Theme.of(context).colorScheme.primary),),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -393,7 +393,7 @@ class _AddSubScriptionViewState extends State<AddSubScriptionView> {
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark 
-                    ? TColor.gray60 
+                    ? TColor.gray80 
                     : TColor.back,
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [

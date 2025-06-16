@@ -29,20 +29,21 @@ class UpcomingBillRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: GestureDetector(
         onTap: onPressed,
-
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          height: 64,
+          height: 66,
+          width: double.infinity,
           decoration: BoxDecoration(
-            color: TColor.back,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? TColor.gray80
+                : TColor.back,
             borderRadius: BorderRadius.circular(4),
           ),
-
           child: Row(
             children: [
               Container(
-                height: 40,
-                width: 40,
+                height: 42, // Increased from 37 to 42
+                width: 42,  // Increased from 37 to 42 for better proportions
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: TColor.gray70.withOpacity(0.5),
@@ -51,20 +52,22 @@ class UpcomingBillRow extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min, // Added to prevent overflow
                   children: [
                     Text(
                       monthFormat.format(date),
                       style: TextStyle(
                         color: TColor.white,
-                        fontSize: 10,
+                        fontSize: 9, // Reduced from 10 to 9
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                    const SizedBox(height: 1), // Added small spacing
                     Text(
                       dayFormat.format(date),
                       style: TextStyle(
                         color: TColor.gray80,
-                        fontSize: 14,
+                        fontSize: 13, // Reduced from 14 to 13
                         fontWeight: FontWeight.w500,
                       ),
                     )
@@ -80,6 +83,8 @@ class UpcomingBillRow extends StatelessWidget {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
               const SizedBox(width: 8),
@@ -91,7 +96,7 @@ class UpcomingBillRow extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert, color: Colors.grey),
                 onSelected: (value) {
@@ -104,21 +109,11 @@ class UpcomingBillRow extends StatelessWidget {
                 itemBuilder: (context) => [
                   const PopupMenuItem(
                     value: 'update',
-                    child: Row(
-                      children: [
-
-                        Text('Update'),
-                      ],
-                    ),
+                    child: Text('Update'),
                   ),
                   const PopupMenuItem(
                     value: 'delete',
-                    child: Row(
-                      children: [
-
-                        Text('Delete'),
-                      ],
-                    ),
+                    child: Text('Delete'),
                   ),
                 ],
               ),
