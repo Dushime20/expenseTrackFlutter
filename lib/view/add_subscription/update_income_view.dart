@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:untitled/view/home/home_view.dart';
 
 import '../../common/color_extension.dart';
 import '../../common_widget/primary_button.dart';
@@ -58,6 +59,11 @@ class _UpdateIncomeViewState extends State<UpdateIncomeView> {
 
     Get.snackbar("Success", "Income updated successfully",
         colorText: TColor.line);
+         Get.to(
+          () => const HomeView(),
+          transition: Transition.rightToLeft,
+          duration: Duration(milliseconds: 300),
+        );
 
     setState(() {
       amountVal = 0.0;

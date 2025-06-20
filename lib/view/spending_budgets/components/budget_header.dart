@@ -8,7 +8,7 @@ class BudgetHeader extends StatelessWidget {
     final primaryColor = Theme.of(context).primaryColor;
     
     return Container(
-      height: 120,
+      height: 130,
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -34,7 +34,7 @@ class BudgetHeader extends StatelessWidget {
                     Text(
                       "Budget Overview",
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:untitled/controller/budgetController.dart';
+import 'package:untitled/controller/budgetController.dart' as budget_ctrl;
 import 'package:untitled/controller/expense_controller.dart';
 import 'components/budget_header.dart';
-import 'components/budget_arc_section.dart';
+import 'components/budget_arc.dart';
 import 'components/budget_card.dart';
 import 'components/expense_history_section.dart';
 import 'components/add_category_button.dart';
@@ -96,7 +96,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<BudgetController>(builder: (ctrl) {
+    return GetBuilder<budget_ctrl.BudgetController>(builder: (ctrl) {
       _handleBudgetAlert(ctrl);
 
       return Scaffold(
@@ -142,7 +142,7 @@ class _SpendingBudgetsViewState extends State<SpendingBudgetsView>
     });
   }
 
-  void _handleBudgetAlert(BudgetController ctrl) {
+  void _handleBudgetAlert(budget_ctrl.BudgetController ctrl) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final total = ctrl.totalBudgetAmount.value;
       final used = ctrl.usedBudgetAmount.value;

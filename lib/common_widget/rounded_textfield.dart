@@ -72,9 +72,9 @@ class _RoundedTextFieldState extends State<RoundedTextField> {
     final isDark = theme.brightness == Brightness.dark;
     
     // Dynamic colors based on focus state
-    final borderColor = _isFocused 
-        ? theme.primaryColor 
-        : (isDark ? TColor.gray10 : TColor.gray10);
+    // final borderColor = _isFocused 
+    //     ? theme.primaryColor 
+    //     : (isDark ? TColor.gray10 : TColor.gray10);
     
     final backgroundColor = isDark ? TColor.gray80 : TColor.white;
     final textColor = isDark ? TColor.white : TColor.gray60;
@@ -107,7 +107,7 @@ class _RoundedTextFieldState extends State<RoundedTextField> {
               : null,
           decoration: BoxDecoration(
             border: Border.all(
-              color: borderColor,
+              // color: borderColor,
               width: _isFocused ? 2 : 1,
             ),
             color: widget.enabled ? backgroundColor : backgroundColor.withOpacity(0.5),

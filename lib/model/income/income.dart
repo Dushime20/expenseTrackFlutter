@@ -1,11 +1,10 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'income.g.dart';
-@JsonSerializable()
-class Income{
 
+@JsonSerializable()
+class Income {
   @JsonKey(name: "id")
   final String? id;
 
@@ -18,41 +17,42 @@ class Income{
   @JsonKey(name: "date")
   final DateTime? date;
 
-  @JsonKey(name: "userId") // ADDED userId field
+  @JsonKey(name: "userId")
   final String? userId;
 
+  @JsonKey(name: "emm")
+  final bool shared; // ✅ NEW: shared field
 
-  Income( {
-  required this.id,
-  required this.name,
-  required this.amount,
-  required this.date,
-  required this.userId,
+  Income({
+    required this.id,
+    required this.name,
+    required this.amount,
+    required this.date,
+    required this.userId,
+    this.shared = true, // ✅ default to false if not provided
+  });
 
-});
-
-  // From JSON: Convert Timestamp to DateTime
+  // ✅ From JSON: Convert Timestamp to DateTime and parse shared
   factory Income.fromJson(Map<String, dynamic> json) {
     return Income(
       id: json['id'] as String?,
       name: json['name'] as String?,
       amount: (json['amount'] as num?)?.toDouble(),
-      date: (json['date'] as Timestamp?)?.toDate(),  // Convert Timestamp to DateTime
+      date: (json['date'] as Timestamp?)?.toDate(),
       userId: json['userId'] as String?,
-     // ADDED userId parsing
+      shared: json['shared'] as bool? ?? true, // ✅ default to false if null
     );
   }
 
-  // To JSON: Firestore expects DateTime as a Timestamp
+  // ✅ To JSON: Include shared
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
       'amount': amount,
-      'date': date,           // Firestore will convert DateTime to Timestamp
+      'date': date,
       'userId': userId,
-
+      'shared': shared, // ✅ include in Firestore document
     };
   }
-
 }
